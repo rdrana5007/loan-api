@@ -1,1 +1,0 @@
-export { default as emiCollection } from './emiCollection.route';
