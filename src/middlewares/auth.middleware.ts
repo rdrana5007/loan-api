@@ -48,5 +48,6 @@ const authorizeRoles = (...allowedRoles: number[]) => {
 };
 
 // Specific role-based middleware
+export const isAdmin = authorizeRoles(ADMIN);
 export const isManager = authorizeRoles(ADMIN, MANAGER);
 export const isCollector = authorizeRoles(ADMIN, MANAGER, COLLECTOR);

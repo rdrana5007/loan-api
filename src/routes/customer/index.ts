@@ -1,1 +1,0 @@
-export { default as customer } from './customer.route';
