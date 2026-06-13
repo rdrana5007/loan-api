@@ -36,6 +36,6 @@ const PORT: string | number = process.env.PORT || 3000;
 app.listen(PORT, (): void => {
     console.log(`Server is running on ${PORT}`);
 
-    // Start cron jobs AFTER server starts
+    // Start cron jobs after server starts
     startJobs();
 });

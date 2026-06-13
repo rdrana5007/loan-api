@@ -1,1 +1,0 @@
-export { default as emiFollowup } from './emiFollowup.route';

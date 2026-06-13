@@ -3,8 +3,7 @@ import { Role } from "../models";
 const roles = [
     { id: 1, name: 'Admin' },
     { id: 2, name: 'Manager' },
-    { id: 3, name: 'Collector' },
-    { id: 4, name: 'Customer' }
+    { id: 3, name: 'Collector' }
 ];
 
 export const seedRoles = async () => {
