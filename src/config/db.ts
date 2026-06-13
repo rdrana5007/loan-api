@@ -3,13 +3,13 @@ import { Sequelize } from 'sequelize';
 
 dotenv.config();
 
-const { DB_DATABASE, DB_USER, DB_PASSWORD, DB_PORT, DB_HOST = 'localhost' } = process.env;
+const { DB_NAME, DB_USER, DB_PASSWORD, DB_PORT, DB_HOST = 'localhost' } = process.env;
 
-if (!DB_DATABASE || !DB_USER || !DB_PASSWORD || !DB_PORT) {
+if (!DB_NAME || !DB_USER || !DB_PASSWORD || !DB_PORT) {
     throw new Error('Missing required database environment variables.');
 }
 
-export const sequelize = new Sequelize(DB_DATABASE, DB_USER, DB_PASSWORD, {
+export const sequelize = new Sequelize(DB_NAME, DB_USER, DB_PASSWORD, {
     host: DB_HOST,
     dialect: 'mysql',
     logging: false,
