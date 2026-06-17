@@ -140,3 +140,20 @@ export const getAllEmiCollection = async (req: Request, res: Response): Promise<
         catchResponse(res, 'Error fetching emi collections', error?.errors?.[0]?.message || error.message || 'Unknown error');
     }
 };
+
+// Get Emi Collection by ID
+export const getEmiCollection = async (req: Request, res: Response): Promise<any> => {
+    const emiId = Number(req.params.id);
+    try {
+        const emi: EmiCollection | null = await EmiCollection.findByPk(emiId, {
+            include: [
+                { model: Customer, as: 'customers', attributes: ['id', 'firstName', 'lastName'] },
+                { model: User, as: 'created_by', attributes: ['id', 'roleId', 'fullName'] }
+            ]
+        });
+        if (!emi) return errorResponse(res, 404, 'Emi collection not found');
+        successResponse(res, 200, 'Emi collection fetched successfully', emi);
+    } catch (error: any) {
+        catchResponse(res, 'Error fetching emi collection details', error?.errors?.[0]?.message || error.message || 'Unknown error');
+    }
+};

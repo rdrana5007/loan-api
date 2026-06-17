@@ -10,7 +10,7 @@ const { ADMIN_USER_NAME, ADMIN_FULL_NAME, ADMIN_EMAIL, ADMIN_PASSWORD, ADMIN_PHO
 export const seedAdmin = async () => {
     const userName = ADMIN_USER_NAME || 'Admin123';
     const fullName = ADMIN_FULL_NAME || 'Admin';
-    const email = ADMIN_EMAIL || 'admin@yopmail.com';
+    const email = ADMIN_EMAIL || 'admin@hnhgroup.in';
     const password = ADMIN_PASSWORD || 'Admin@123';
     const phone = ADMIN_PHONE || '1234567890';
 

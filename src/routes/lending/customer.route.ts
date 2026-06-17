@@ -1,6 +1,6 @@
 import { Router } from "express";
-import { createCustomer, deleteCustomer, getAllCustomer, updateCustomer } from "../../controllers";
-import { createCustomerSchema, getAllCustomerSchema, updateCustomerSchema } from "../../validations";
+import { createCustomer, deleteCustomer, getAllCustomer, getCustomer, updateCustomer } from "../../controllers";
+import { createCustomerSchema, getAllCustomerSchema, idParamSchema, updateCustomerSchema } from "../../validations";
 import { isManager, multiFileUploadMiddleware } from "../../middlewares";
 
 const router: Router = Router();
@@ -14,6 +14,9 @@ router.post('/', multiFileUploadMiddleware([
 
 // Get all customer
 router.get('/', isManager, getAllCustomerSchema, getAllCustomer);
+
+// Get customer by id
+router.get('/:id', isManager, idParamSchema, getCustomer);
 
 // Update customer by id
 router.patch('/:id', multiFileUploadMiddleware([

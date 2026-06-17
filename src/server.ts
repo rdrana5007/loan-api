@@ -25,7 +25,11 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 connectDB();
 
 app.get('/', (req: Request, res: Response): any => {
-    res.send('Hello World !!!');
+    res.json({ 
+        message: 'HNH Loan Management API',
+        version: '1.0.0',
+        status: 'running'
+    });
 });
 
 // Route

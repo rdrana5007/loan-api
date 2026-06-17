@@ -165,7 +165,7 @@ export const getAllLoan = async (req: Request, res: Response): Promise<any> => {
 };
 
 // Get Loan by ID
-export const getLoanById = async (req: Request, res: Response): Promise<any> => {
+export const getLoan = async (req: Request, res: Response): Promise<any> => {
     const loanId = Number(req.params.id);
     try {
         const loan: Loan | null = await Loan.findByPk(loanId, {

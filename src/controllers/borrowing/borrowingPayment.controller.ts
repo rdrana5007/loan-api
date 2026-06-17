@@ -135,3 +135,17 @@ export const getAllBorrowingPayment = async (req: Request, res: Response): Promi
         catchResponse(res, 'Error fetching borrowing payments', error?.errors?.[0]?.message || error.message || 'Unknown error');
     }
 };
+
+// Get Borrowing Payment by ID
+export const getBorrowingPayment = async (req: Request, res: Response): Promise<any> => {
+    const borrowingPaymentId = Number(req.params.id);
+    try {
+        const borrowingPayment: BorrowingPayment | null = await BorrowingPayment.findByPk(borrowingPaymentId, {
+            include: [{ model: User, as: 'created_by', attributes: ['id', 'roleId', 'fullName'] }]
+        });
+        if (!borrowingPayment) return errorResponse(res, 404, 'Borrowing payment not found');
+        successResponse(res, 200, 'Borrowing payment fetched successfully', borrowingPayment);
+    } catch (error: any) {
+        catchResponse(res, 'Error fetching borrowing payment details', error?.errors?.[0]?.message || error.message || 'Unknown error');
+    }
+};
