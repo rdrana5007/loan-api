@@ -2,22 +2,22 @@ import { User } from "../../user";
 import { Customer } from "../customer";
 import { EmiSchedule } from "../emiSchedule";
 import { Loan } from "../loan";
-import EmiFollowUp from "./emiFollowup.model";
+import EmiFollowup from "./emiFollowup.model";
 
 // EmiSchedule associations
-EmiSchedule.hasMany(EmiFollowUp, { foreignKey: 'emiScheduleId', as: 'emi_followups' });
-EmiFollowUp.belongsTo(EmiSchedule, { foreignKey: 'emiScheduleId', as: 'emi_schedules' });
+EmiSchedule.hasMany(EmiFollowup, { foreignKey: 'emiScheduleId', as: 'emi_followups' });
+EmiFollowup.belongsTo(EmiSchedule, { foreignKey: 'emiScheduleId', as: 'emi_schedules' });
 
 // Loan associations
-Loan.hasMany(EmiFollowUp, { foreignKey: 'loanId', as: 'emi_followups' });
-EmiFollowUp.belongsTo(Loan, { foreignKey: 'loanId', as: 'loans' });
+Loan.hasMany(EmiFollowup, { foreignKey: 'loanId', as: 'emi_followups' });
+EmiFollowup.belongsTo(Loan, { foreignKey: 'loanId', as: 'loans' });
 
 // Customer associations
-Customer.hasMany(EmiFollowUp, { foreignKey: 'customerId', as: 'emi_followups' });
-EmiFollowUp.belongsTo(Customer, { foreignKey: 'customerId', as: 'customers' });
+Customer.hasMany(EmiFollowup, { foreignKey: 'customerId', as: 'emi_followups' });
+EmiFollowup.belongsTo(Customer, { foreignKey: 'customerId', as: 'customers' });
 
 // User (Collector) associations
-User.hasMany(EmiFollowUp, { foreignKey: 'collectorId', as: 'emi_followups' });
-EmiFollowUp.belongsTo(User, { foreignKey: 'collectorId', as: 'created_by' });
+User.hasMany(EmiFollowup, { foreignKey: 'collectorId', as: 'emi_followups' });
+EmiFollowup.belongsTo(User, { foreignKey: 'collectorId', as: 'created_by' });
 
-export { EmiFollowUp };
+export { EmiFollowup };

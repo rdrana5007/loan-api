@@ -28,10 +28,10 @@ export const loginUser = async (req: Request, res: Response): Promise<any> => {
         const newData = {
             id: user.id,
             roleId: user.roleId,
-            name: user.name,
+            userName: user.userName,
+            fullName: user.fullName,
             email: user.email,
             phone: user.phone,
-            profile: user.profileImage,
             roleName,
             isActive: user.isActive,
             signInProvider: user.signInProvider
@@ -52,7 +52,6 @@ export const getUserProfile = async (req: Request, res: Response): Promise<any> 
             include: [{ model: Role, as: 'roles', attributes: ['id', 'name'] }]
         }) as User & { roles?: Role };
         if (!user) return errorResponse(res, 404, 'User not found');
-
         successResponse(res, 200, `${user?.roles?.name ?? 'User'} profile fetched successfully`, user);
     } catch (error: any) {
         catchResponse(res, 'Error fetching user profile', error?.errors?.[0]?.message || error.message || 'Unknown error');

@@ -69,6 +69,20 @@ export const getAllExpense = async (req: Request, res: Response): Promise<any> =
     }
 };
 
+// Get Expense by ID
+export const getExpense = async (req: Request, res: Response): Promise<any> => {
+    const expenseId = Number(req.params.id);
+    try {
+        const expense: Expense | null = await Expense.findByPk(expenseId, {
+            include: [{ model: User, as: 'created_by', attributes: ['id', 'roleId', 'fullName'] }]
+        });
+        if (!expense) return errorResponse(res, 404, 'Expense not found');
+        successResponse(res, 200, 'Expense fetched successfully', expense);
+    } catch (error: any) {
+        catchResponse(res, 'Error fetching expense details', error?.errors?.[0]?.message || error.message || 'Unknown error');
+    }
+};
+
 // Update Expense by ID
 export const updateExpense = async (req: Request, res: Response): Promise<any> => {
     const expenseId = Number(req.params.id);

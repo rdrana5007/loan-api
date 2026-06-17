@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { catchResponse, errorResponse, paginate, successResponse } from "../../utils";
-import { Customer, EmiFollowUp, EmiSchedule, Loan, User } from "../../models";
+import { Customer, EmiFollowup, EmiSchedule, Loan, User } from "../../models";
 import { COLLECTOR } from "../../constants";
 import { Op } from "sequelize";
 
@@ -22,7 +22,7 @@ export const createEmiFollowup = async (req: Request, res: Response): Promise<an
         if (!collector) return errorResponse(res, 404, 'Collector not found');
 
         // create a new emi followup
-        const emiFollowup: EmiFollowUp = await EmiFollowUp.create({
+        const emiFollowup: EmiFollowup = await EmiFollowup.create({
             emiScheduleId,
             loanId,
             customerId,
@@ -67,7 +67,7 @@ export const getAllEmiFollowup = async (req: Request, res: Response): Promise<an
         }
 
         const result = await paginate({
-            model: EmiFollowUp,
+            model: EmiFollowup,
             page: pageNum,
             pageSize: size,
             whereClause,
@@ -94,6 +94,23 @@ export const getAllEmiFollowup = async (req: Request, res: Response): Promise<an
     }
 };
 
+// Get Emi Followup by ID
+export const getEmiFollowup = async (req: Request, res: Response): Promise<any> => {
+    const followupId = Number(req.params.id);
+    try {
+        const followup: EmiFollowup | null = await EmiFollowup.findByPk(followupId, {
+            include: [
+                { model: Customer, as: 'customers', attributes: ['id', 'firstName', 'lastName'] },
+                { model: User, as: 'created_by', attributes: ['id', 'roleId', 'fullName'] }
+            ]
+        });
+        if (!followup) return errorResponse(res, 404, 'Emi followup not found');
+        successResponse(res, 200, 'Emi followup fetched successfully', followup);
+    } catch (error: any) {
+        catchResponse(res, 'Error fetching emi followup details', error?.errors?.[0]?.message || error.message || 'Unknown error');
+    }
+};
+
 // Update Emi Followup by ID
 export const updateEmiFollowup = async (req: Request, res: Response): Promise<any> => {
     const followupId = Number(req.params.id);
@@ -101,8 +118,8 @@ export const updateEmiFollowup = async (req: Request, res: Response): Promise<an
     const { status, remarks, followUpDate, nextFollowupDate } = req.body;
 
     try {
-        const [followup, collector]: [EmiFollowUp | null, User | null] = await Promise.all([
-            EmiFollowUp.findByPk(followupId),
+        const [followup, collector]: [EmiFollowup | null, User | null] = await Promise.all([
+            EmiFollowup.findByPk(followupId),
             User.findOne({ where: { id: collectorId, roleId: COLLECTOR } })
         ]);
         if (!followup) return errorResponse(res, 404, 'Emi followup not found');

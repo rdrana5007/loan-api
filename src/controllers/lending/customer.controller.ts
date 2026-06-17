@@ -130,10 +130,35 @@ export const getAllCustomer = async (req: Request, res: Response): Promise<any> 
     }
 };
 
+// Get Customer by ID
+export const getCustomer = async (req: Request, res: Response): Promise<any> => {
+    const customerId = Number(req.params.id);
+    try {
+        const customer: Customer | null = await Customer.findByPk(customerId, {
+            include: [
+                {
+                    model: CustomerDocuments,
+                    as: 'customer_documents',
+                    attributes: ['id', 'customerId', 'aadhaarNumber', 'panNumber', 'aadhaarFile', 'panFile', 'verificationStatus', 'remarks']
+                },
+                {
+                    model: User,
+                    as: 'created_by',
+                    attributes: ['id', 'roleId', 'fullName']
+                }
+            ]
+        });
+        if (!customer) return errorResponse(res, 404, 'Customer not found');
+        successResponse(res, 200, 'Customer fetched successfully', customer);
+    } catch (error: any) {
+        catchResponse(res, 'Error fetching customer details', error?.errors?.[0]?.message || error.message || 'Unknown error');
+    }
+};
+
 // Update Customer by ID
 export const updateCustomer = async (req: Request, res: Response): Promise<any> => {
     const customerId = Number(req.params.id);
-    const { firstName, lastName, email, phone, gender, address, city, state, pincode, aadhaarNumber, panNumber, verificationStatus, remarks } = req.body;
+    const { firstName, lastName, email, phone, gender, address, city, state, pincode, aadhaarNumber, panNumber, verificationStatus, remarks, isActive } = req.body;
     const profileImage = (req as any).profileUrl || null;
     const aadhaarImage = (req as any).aadhaarUrl || null;
     const panImage = (req as any).panUrl || null;
@@ -186,7 +211,8 @@ export const updateCustomer = async (req: Request, res: Response): Promise<any> 
             city,
             state,
             pincode,
-            profileImage: profileImage || oldProfileImage
+            profileImage: profileImage || oldProfileImage,
+            isActive
         }, { transaction: t });
 
         if (documents) {
