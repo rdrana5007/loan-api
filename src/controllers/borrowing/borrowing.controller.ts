@@ -138,6 +138,28 @@ export const getAllBorrowing = async (req: Request, res: Response): Promise<any>
     }
 };
 
+// Get Borrowing by ID
+export const getBorrowing = async (req: Request, res: Response): Promise<any> => {
+    const borrowingId = Number(req.params.id);
+    try {
+        const borrowing: Borrowing | null = await Borrowing.findByPk(borrowingId, {
+            include: [
+                {
+                    model: Counterparty,
+                    as: 'counterparties',
+                    attributes: ['id', 'createdBy', 'counterpartyCode', 'name', 'companyName', 'email', 'phone', 'isActive']
+                },
+                { model: User, as: 'created_by', attributes: ['id', 'roleId', 'fullName'] },
+                { model: User, as: 'approved_by', attributes: ['id', 'roleId', 'fullName'] }
+            ]
+        });
+        if (!borrowing) return errorResponse(res, 404, 'Borrowing not found');
+        successResponse(res, 200, 'Borrowing fetched successfully', borrowing);
+    } catch (error: any) {
+        catchResponse(res, 'Error fetching borrowing details', error?.errors?.[0]?.message || error.message || 'Unknown error');
+    }
+};
+
 // Update Borrowing by ID
 export const updateBorrowing = async (req: Request, res: Response): Promise<any> => {
     const borrowingId = Number(req.params.id);
