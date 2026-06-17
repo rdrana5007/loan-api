@@ -1,6 +1,6 @@
 import { Router } from "express";
-import { createEmiCollection, getAllEmiCollection } from "../../controllers";
-import { createEmiCollectionSchema, getAllEmiCollectionSchema } from "../../validations";
+import { createEmiCollection, getAllEmiCollection, getEmiCollection } from "../../controllers";
+import { createEmiCollectionSchema, getAllEmiCollectionSchema, idParamSchema } from "../../validations";
 import { isCollector } from "../../middlewares";
 
 const router: Router = Router();
@@ -10,5 +10,8 @@ router.post('/', isCollector, createEmiCollectionSchema, createEmiCollection);
 
 // Get all emi collection
 router.get('/', isCollector, getAllEmiCollectionSchema, getAllEmiCollection);
+
+// Get emi collection by id
+router.get('/:id', isCollector, idParamSchema, getEmiCollection);
 
 export default router;

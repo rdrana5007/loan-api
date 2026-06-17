@@ -86,6 +86,23 @@ export const getAllExpenseRequest = async (req: Request, res: Response): Promise
     }
 };
 
+// Get Expense Request by ID
+export const getExpenseRequest = async (req: Request, res: Response): Promise<any> => {
+    const expenseRequestId = Number(req.params.id);
+    try {
+        const expenseRequest: ExpenseRequest | null = await ExpenseRequest.findByPk(expenseRequestId, {
+            include: [
+                { model: User, as: 'created_by', attributes: ['id', 'roleId', 'fullName'] },
+                { model: User, as: 'updated_by', attributes: ['id', 'roleId', 'fullName'] }
+            ]
+        });
+        if (!expenseRequest) return errorResponse(res, 404, 'Expense request not found');
+        successResponse(res, 200, 'Expense request fetched successfully', expenseRequest);
+    } catch (error: any) {
+        catchResponse(res, 'Error fetching expense request details', error?.errors?.[0]?.message || error.message || 'Unknown error');
+    }
+};
+
 // Approve Expense Request by ID
 export const approveExpenseRequest = async (req: Request, res: Response): Promise<any> => {
     const expenseRequestId = Number(req.params.id);

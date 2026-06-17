@@ -100,10 +100,28 @@ export const getAllUser = async (req: Request, res: Response): Promise<any> => {
     }
 };
 
+// Get User (Manager / Collector) by ID
+export const getUser = async (req: Request, res: Response): Promise<any> => {
+    const userId = Number(req.params.id);
+    try {
+        const user: User | null = await User.findByPk(userId, {
+            attributes: { exclude: ['password'] },
+            include: [{ model: Role, as: 'roles', attributes: ['id', 'name'] }]
+        });
+        if (!user) return errorResponse(res, 404, 'User not found');
+
+        const roleName: string = getRole(user?.roleId); // get role name
+
+        successResponse(res, 200, `${roleName} fetched successfully`, user);
+    } catch (error: any) {
+        catchResponse(res, 'Error fetching user details', error?.errors?.[0]?.message || error.message || 'Unknown error');
+    }
+};
+
 // Update User (Manager / Collector) by ID
 export const updateUser = async (req: Request, res: Response): Promise<any> => {
     const userId = Number(req.params.id);
-    const { userName, fullName, email, phone } = req.body;
+    const { userName, fullName, email, phone, isActive } = req.body;
 
     try {
         const user: User | null = await User.findByPk(userId, {
@@ -120,7 +138,7 @@ export const updateUser = async (req: Request, res: Response): Promise<any> => {
 
         const roleName: string = getRole(user?.roleId); // get role name
 
-        await user.update({ userName, fullName, email, phone });
+        await user.update({ userName, fullName, email, phone, isActive });
         successResponse(res, 200, `${roleName} updated successfully`, user);
     } catch (error: any) {
         catchResponse(res, 'Error updating user', error?.errors?.[0]?.message || error.message || 'Unknown error');

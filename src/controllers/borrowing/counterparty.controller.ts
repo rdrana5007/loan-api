@@ -95,10 +95,24 @@ export const getAllCounterparty = async (req: Request, res: Response): Promise<a
     }
 };
 
+// Get Counterparty by ID
+export const getCounterparty = async (req: Request, res: Response): Promise<any> => {
+    const counterpartyId = Number(req.params.id);
+    try {
+        const counterparty: Counterparty | null = await Counterparty.findByPk(counterpartyId, {
+            include: [{ model: User, as: 'created_by', attributes: ['id', 'roleId', 'fullName'] }]
+        });
+        if (!counterparty) return errorResponse(res, 404, 'Counterparty not found');
+        successResponse(res, 200, 'Counterparty fetched successfully', counterparty);
+    } catch (error: any) {
+        catchResponse(res, 'Error fetching counterparty details', error?.errors?.[0]?.message || error.message || 'Unknown error');
+    }
+};
+
 // Update Counterparty by ID
 export const updateCounterparty = async (req: Request, res: Response): Promise<any> => {
     const counterpartyId = Number(req.params.id);
-    const { counterpartyType, name, companyName, email, phone, panNumber, gstNumber, address, bankName, accountNumber, ifscCode } = req.body;
+    const { counterpartyType, name, companyName, email, phone, panNumber, gstNumber, address, bankName, accountNumber, ifscCode, isActive } = req.body;
 
     try {
         const counterparty: Counterparty | null = await Counterparty.findByPk(counterpartyId);
@@ -114,7 +128,7 @@ export const updateCounterparty = async (req: Request, res: Response): Promise<a
         if (existingPhone) return errorResponse(res, 400, 'Phone already exists');
         if (existingPan) return errorResponse(res, 400, 'PAN number already exists');
 
-        await counterparty.update({ counterpartyType, name, companyName, email, phone, panNumber, gstNumber, address, bankName, accountNumber, ifscCode });
+        await counterparty.update({ counterpartyType, name, companyName, email, phone, panNumber, gstNumber, address, bankName, accountNumber, ifscCode, isActive });
         successResponse(res, 200, 'Counterparty updated successfully', counterparty);
     } catch (error: any) {
         catchResponse(res, 'Error updating counterparty', error?.errors?.[0]?.message || error.message || 'Unknown error');
