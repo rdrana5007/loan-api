@@ -4,6 +4,7 @@ import { sequelize } from "../../../config";
 interface CustomerAttributes {
     id: number;
     createdBy: number;
+    customerCode: string;
     firstName: string;
     lastName: string;
     email: string;
@@ -23,6 +24,7 @@ interface CustomerCreationAttributes extends Optional<CustomerAttributes, 'id' |
 class Customer extends Model<CustomerAttributes, CustomerCreationAttributes> {
     declare id: number;
     declare createdBy: number;
+    declare customerCode: string;
     declare firstName: string;
     declare lastName: string;
     declare email: string;
@@ -48,6 +50,11 @@ Customer.init(
             type: DataTypes.INTEGER.UNSIGNED,
             references: { model: 'users', key: 'id' },
             allowNull: false
+        },
+        customerCode: {
+            type: new DataTypes.STRING(20),
+            allowNull: false,
+            unique: true
         },
         firstName: {
             type: new DataTypes.STRING(128),

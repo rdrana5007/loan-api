@@ -121,6 +121,7 @@ export const getAllEmiCollection = async (req: Request, res: Response): Promise<
             searchQuery: searchTerm,
             searchFields: [
                 'transactionReference',
+                'customers.customerCode',
                 'customers.first_name',
                 'customers.last_name',
                 'created_by.full_name'
@@ -129,7 +130,7 @@ export const getAllEmiCollection = async (req: Request, res: Response): Promise<
             sortOrder: sortOrderStr as 'ASC' | 'DESC',
             options: {
                 include: [
-                    { model: Customer, as: 'customers', attributes: ['id', 'firstName', 'lastName'] },
+                    { model: Customer, as: 'customers', attributes: ['id', 'customerCode', 'firstName', 'lastName'] },
                     { model: User, as: 'created_by', attributes: ['id', 'roleId', 'fullName'] }
                 ]
             }
@@ -147,7 +148,7 @@ export const getEmiCollection = async (req: Request, res: Response): Promise<any
     try {
         const emi: EmiCollection | null = await EmiCollection.findByPk(emiId, {
             include: [
-                { model: Customer, as: 'customers', attributes: ['id', 'firstName', 'lastName'] },
+                { model: Customer, as: 'customers', attributes: ['id', 'customerCode', 'firstName', 'lastName'] },
                 { model: User, as: 'created_by', attributes: ['id', 'roleId', 'fullName'] }
             ]
         });

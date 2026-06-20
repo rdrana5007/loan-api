@@ -74,6 +74,7 @@ export const getAllEmiFollowup = async (req: Request, res: Response): Promise<an
             searchQuery: searchTerm,
             searchFields: [
                 'communicationType',
+                'customers.customerCode',
                 'customers.first_name',
                 'customers.last_name',
                 'created_by.full_name'
@@ -82,7 +83,7 @@ export const getAllEmiFollowup = async (req: Request, res: Response): Promise<an
             sortOrder: sortOrderStr as 'ASC' | 'DESC',
             options: {
                 include: [
-                    { model: Customer, as: 'customers', attributes: ['id', 'firstName', 'lastName'] },
+                    { model: Customer, as: 'customers', attributes: ['id', 'customerCode', 'firstName', 'lastName'] },
                     { model: User, as: 'created_by', attributes: ['id', 'roleId', 'fullName'] }
                 ]
             }
@@ -100,7 +101,7 @@ export const getEmiFollowup = async (req: Request, res: Response): Promise<any> 
     try {
         const followup: EmiFollowup | null = await EmiFollowup.findByPk(followupId, {
             include: [
-                { model: Customer, as: 'customers', attributes: ['id', 'firstName', 'lastName'] },
+                { model: Customer, as: 'customers', attributes: ['id', 'customerCode', 'firstName', 'lastName'] },
                 { model: User, as: 'created_by', attributes: ['id', 'roleId', 'fullName'] }
             ]
         });

@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { Customer, CustomerDocuments, User } from "../../models";
-import { catchResponse, errorResponse, generateToken, paginate, removeUploadedFiles, successResponse } from "../../utils";
+import { catchResponse, errorResponse, generateToken, generateUserCode, paginate, removeUploadedFiles, successResponse } from "../../utils";
 import { Op } from "sequelize";
 import { sequelize } from "../../config";
 
@@ -23,8 +23,11 @@ export const createCustomer = async (req: Request, res: Response): Promise<any> 
             return errorResponse(res, 400, 'Customer already exists');
         }
 
+        const customerCode: string = generateUserCode('CUST'); // Generate Customer Code
+
         // create a new customer
         const customer: Customer = await Customer.create({
+            customerCode,
             firstName,
             lastName,
             email,
@@ -78,7 +81,7 @@ export const createCustomer = async (req: Request, res: Response): Promise<any> 
 
 // Get all Customer
 export const getAllCustomer = async (req: Request, res: Response): Promise<any> => {
-    const { page, pageSize, search, sortField, sortOrder } = req.query;
+    const { page, pageSize, search, sortField, sortOrder, status } = req.query;
     const pageNum = page ? parseInt(page as string, 10) : 1;
     const size = pageSize ? parseInt(pageSize as string, 10) : 10;
     const searchTerm = search ? (search as string) : '';
@@ -86,18 +89,28 @@ export const getAllCustomer = async (req: Request, res: Response): Promise<any> 
     const sortOrderStr = sortOrder ? (sortOrder as string).toUpperCase() : 'DESC';
 
     try {
-        const whereClause: any = searchTerm
-            ? {
-                [Op.or]: [
-                    { firstName: { [Op.like]: `%${searchTerm}%` } },
-                    { lastName: { [Op.like]: `%${searchTerm}%` } },
-                    { email: { [Op.like]: `%${searchTerm}%` } },
-                    { address: { [Op.like]: `%${searchTerm}%` } },
-                    { city: { [Op.like]: `%${searchTerm}%` } },
-                    { state: { [Op.like]: `%${searchTerm}%` } }
-                ]
-            }
-            : {};
+        let whereClause: any = {};
+
+        if (status) {
+            whereClause.status = status;
+        }
+
+         if (searchTerm) {
+            whereClause = searchTerm
+                ? {
+                    ...whereClause,
+                    [Op.or]: [
+                        { customerCode: { [Op.like]: `%${searchTerm}%` } },
+                        { firstName: { [Op.like]: `%${searchTerm}%` } },
+                        { lastName: { [Op.like]: `%${searchTerm}%` } },
+                        { email: { [Op.like]: `%${searchTerm}%` } },
+                        { address: { [Op.like]: `%${searchTerm}%` } },
+                        { city: { [Op.like]: `%${searchTerm}%` } },
+                        { state: { [Op.like]: `%${searchTerm}%` } }
+                    ]
+                }
+                : {};
+        }
 
         const result = await paginate({
             model: Customer,
@@ -105,7 +118,7 @@ export const getAllCustomer = async (req: Request, res: Response): Promise<any> 
             pageSize: size,
             whereClause,
             searchQuery: searchTerm,
-            searchFields: ['firstName', 'lastName', 'email', 'address', 'city', 'state', 'created_by.full_name'],
+            searchFields: ['customerCode', 'firstName', 'lastName', 'email', 'address', 'city', 'state', 'created_by.full_name'],
             sortField: sortFieldStr,
             sortOrder: sortOrderStr as 'ASC' | 'DESC',
             options: {
