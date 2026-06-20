@@ -2,22 +2,18 @@ import path from "path";
 import fs from 'fs/promises';
 
 // supported file type keys
-export type FileType = 'image' | 'csv' | 'audio' | 'video';
+export type FileType = 'image' | 'pdf';
 
 // file size limits for different file types
 export const fileSizeLimits: Record<FileType, number> = {
-    image: 10 * 1024 * 1024, // 10 MB
-    csv: 10 * 1024 * 1024, // 10 MB
-    audio: 8 * 1024 * 1024, // 8 MB
-    video: 50 * 1024 * 1024 // 50 MB
+    image: 5 * 1024 * 1024, // 5 MB
+    pdf: 5 * 1024 * 1024, // 5 MB
 };
 
 // allowed file extensions / MIME types
 export const fileTypes: Record<FileType, RegExp> = {
     image: /jpeg|jpg|png|svg|gif|webp|bmp/,
-    csv: /csv/,
-    audio: /mp3|wav|aac|ogg|flac/,
-    video: /mp4|avi|mkv|mov|flv|webm/
+    pdf: /pdf/
 };
 
 /**

@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { catchResponse, errorResponse, generateCounterpartyCode, paginate, successResponse } from "../../utils";
+import { catchResponse, errorResponse, generateUserCode, paginate, successResponse } from "../../utils";
 import { Op } from "sequelize";
 import { Counterparty, User } from "../../models";
 
@@ -21,7 +21,7 @@ export const createCounterparty = async (req: Request, res: Response): Promise<a
         if (existingEmail) return errorResponse(res, 400, 'Email already exists');
         if (existingPan) return errorResponse(res, 400, 'PAN number already exists');
 
-        const counterpartyCode: string = generateCounterpartyCode(); // Generate Counterparty Code
+        const counterpartyCode: string = generateUserCode('CP'); // Generate Counterparty Code
 
         // create a new counterparty
         const counterparty: Counterparty = await Counterparty.create({
@@ -49,7 +49,7 @@ export const createCounterparty = async (req: Request, res: Response): Promise<a
 
 // Get all Counterparty
 export const getAllCounterparty = async (req: Request, res: Response): Promise<any> => {
-    const { page, pageSize, search, sortField, sortOrder, counterpartyType } = req.query;
+    const { page, pageSize, search, sortField, sortOrder, counterpartyType, status } = req.query;
     const pageNum = page ? parseInt(page as string, 10) : 1;
     const size = pageSize ? parseInt(pageSize as string, 10) : 10;
     const searchTerm = search ? (search as string) : '';
@@ -61,6 +61,10 @@ export const getAllCounterparty = async (req: Request, res: Response): Promise<a
 
         if (counterpartyType) {
             whereClause.counterpartyType = counterpartyType;
+        }
+
+        if (status) {
+            whereClause.status = status;
         }
 
         if (searchTerm) {

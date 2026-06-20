@@ -122,6 +122,7 @@ export const getAllLoan = async (req: Request, res: Response): Promise<any> => {
             searchQuery: searchTerm,
             searchFields: [
                 'loanNumber',
+                'customers.customerCode',
                 'customers.first_name',
                 'customers.last_name',
                 'customers.email',
@@ -139,7 +140,7 @@ export const getAllLoan = async (req: Request, res: Response): Promise<any> => {
                     {
                         model: Customer,
                         as: 'customers',
-                        attributes: ['id', 'createdBy', 'firstName', 'lastName', 'email', 'phone', 'isActive'],
+                        attributes: ['id', 'createdBy', 'customerCode', 'firstName', 'lastName', 'email', 'phone', 'isActive'],
                         include: [
                             {
                                 model: CustomerDocuments,
