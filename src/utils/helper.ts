@@ -53,9 +53,9 @@ export const calculateDueDate = (startDate: string | Date, tenureMonths: number)
     return date;
 };
 
-// generate counterparty code
-export const generateCounterpartyCode = (): string => {
-    return `CP-${randomUUID().slice(0, 8).toUpperCase()}`
+// generate user code
+export const generateUserCode = (prefix: string): string => {
+    return `${prefix}-${randomUUID().slice(0, 8).toUpperCase()}`
 };
 
 // calculate emi borrowing amounts
