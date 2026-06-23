@@ -17,17 +17,6 @@ export const createCustomerSchema = (req: Request, res: Response, next: NextFunc
                 'string.pattern.base': 'Phone number must be between 7 and 15 digits and contain only numbers.',
                 'any.required': 'Phone number is required.'
             }),
-            password: Joi.string()
-                .min(6)
-                .max(12)
-                .pattern(new RegExp(/^(?=^[A-Z])(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?][0-9]).{6,12}$/))
-                .required()
-                .messages({
-                    'string.pattern.base': 'Password must be 6-12 characters, start with an uppercase letter, contain a special character followed by a number.',
-                    'string.min': 'Password must be at least 6 characters long.',
-                    'string.max': 'Password must be at most 12 characters long.',
-                    'any.required': 'Password is required.'
-                }),
             gender: Joi.string().valid('male', 'female', 'other').required(),
             address: Joi.string().max(255).required(),
             city: Joi.string().max(100).required(),
@@ -62,7 +51,9 @@ export const getAllCustomerSchema = (req: Request, res: Response, next: NextFunc
             pageSize: Joi.number().integer().min(1).max(100).optional(),
             search: Joi.string().max(100).optional(),
             sortField: Joi.string().valid('firstName', 'lastName', 'email', 'createdAt', 'updatedAt').optional(),
-            sortOrder: Joi.string().valid('asc', 'desc').optional()
+            sortOrder: Joi.string().valid('asc', 'desc').optional(),
+            status: Joi.boolean().optional(),
+            verificationStatus: Joi.string().valid('pending', 'verified', 'rejected').optional()
         });
 
         const { error } = schema.validate(req.query);

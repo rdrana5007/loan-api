@@ -63,8 +63,8 @@ export const getAllCounterparty = async (req: Request, res: Response): Promise<a
             whereClause.counterpartyType = counterpartyType;
         }
 
-        if (status) {
-            whereClause.status = status;
+        if (status !== undefined) {
+            whereClause.isActive = status === 'true';
         }
 
         if (searchTerm) {
