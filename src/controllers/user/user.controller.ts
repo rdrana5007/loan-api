@@ -56,18 +56,15 @@ export const getAllUser = async (req: Request, res: Response): Promise<any> => {
 
     try {
         let whereClause: any = {
-            [Op.or]: [
-                { roleId: { [Op.ne]: ADMIN } },
-                { roleId: null }
-            ]
+            roleId: { [Op.ne]: ADMIN } 
         };
 
         if (isManager || isCollector) {
             whereClause = { roleId: isManager ? MANAGER : COLLECTOR };
         }
 
-        if (status) {
-            whereClause.status = status;
+        if (status !== undefined) {
+            whereClause.isActive = status === 'true';
         }
 
         if (searchTerm) {

@@ -51,7 +51,8 @@ export const getAllUserSchema = (req: Request, res: Response, next: NextFunction
             sortField: Joi.string().valid('userName', 'email', 'createdAt', 'updatedAt').optional(),
             sortOrder: Joi.string().valid('asc', 'desc').optional(),
             isManager: Joi.boolean().optional(),
-            isCollector: Joi.boolean().optional()
+            isCollector: Joi.boolean().optional(),
+            status: Joi.boolean().optional()
         });
 
         const { error } = schema.validate(req.query);

@@ -47,7 +47,8 @@ export const getAllCounterpartySchema = (req: Request, res: Response, next: Next
             search: Joi.string().max(100).optional(),
             sortField: Joi.string().valid('name', 'companyName', 'createdAt', 'updatedAt').optional(),
             sortOrder: Joi.string().valid('asc', 'desc').optional(),
-            counterpartyType: Joi.string().valid('investor', 'bank', 'NBFC', 'corporate', 'government').optional()
+            counterpartyType: Joi.string().valid('investor', 'bank', 'NBFC', 'corporate', 'government').optional(),
+            status: Joi.boolean().optional()
         });
 
         const { error } = schema.validate(req.query);

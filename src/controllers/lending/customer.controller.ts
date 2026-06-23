@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { Customer, CustomerDocuments, User } from "../../models";
-import { catchResponse, errorResponse, generateToken, generateUserCode, paginate, removeUploadedFiles, successResponse } from "../../utils";
+import { catchResponse, errorResponse, generateUserCode, paginate, removeUploadedFiles, successResponse } from "../../utils";
 import { Op } from "sequelize";
 import { sequelize } from "../../config";
 
@@ -41,24 +41,6 @@ export const createCustomer = async (req: Request, res: Response): Promise<any> 
             createdBy: userId
         }, { transaction: t });
 
-        const jwtToken: string = generateToken(customer); // generate a token
-
-        const newData: Customer | any = {
-            id: customer.id,
-            firstName: customer.firstName,
-            lastName: customer.lastName,
-            email: customer.email,
-            phone: customer.phone,
-            gender: customer.gender,
-            address: customer.address,
-            city: customer.city,
-            state: customer.state,
-            pincode: customer.pincode,
-            profileImage: customer.profileImage,
-            createdBy: customer.createdBy,
-            isActive: customer.isActive
-        };
-
         // create customer documents
         const documents: CustomerDocuments = await CustomerDocuments.create({
             customerId: customer.id,
@@ -71,7 +53,7 @@ export const createCustomer = async (req: Request, res: Response): Promise<any> 
         }, { transaction: t });
 
         await t.commit();
-        successResponse(res, 201, 'Customer created successful', { token: jwtToken, customer: newData, documents });
+        successResponse(res, 201, 'Customer created successful', { customer, documents });
     } catch (error: any) {
         await t.rollback();
         await removeUploadedFiles(profileImage, aadhaarImage, panImage);
@@ -81,7 +63,7 @@ export const createCustomer = async (req: Request, res: Response): Promise<any> 
 
 // Get all Customer
 export const getAllCustomer = async (req: Request, res: Response): Promise<any> => {
-    const { page, pageSize, search, sortField, sortOrder, status } = req.query;
+    const { page, pageSize, search, sortField, sortOrder, status, verificationStatus } = req.query;
     const pageNum = page ? parseInt(page as string, 10) : 1;
     const size = pageSize ? parseInt(pageSize as string, 10) : 10;
     const searchTerm = search ? (search as string) : '';
@@ -91,11 +73,11 @@ export const getAllCustomer = async (req: Request, res: Response): Promise<any> 
     try {
         let whereClause: any = {};
 
-        if (status) {
-            whereClause.status = status;
+        if (status !== undefined) {
+            whereClause.isActive = status === 'true';
         }
 
-         if (searchTerm) {
+        if (searchTerm) {
             whereClause = searchTerm
                 ? {
                     ...whereClause,
@@ -112,6 +94,17 @@ export const getAllCustomer = async (req: Request, res: Response): Promise<any> 
                 : {};
         }
 
+        const customerDocumentsInclude: any = {
+            model: CustomerDocuments,
+            as: 'customer_documents',
+            attributes: ['id', 'customerId', 'aadhaarNumber', 'panNumber', 'aadhaarFile', 'panFile', 'verificationStatus', 'remarks']
+        };
+
+        if (verificationStatus) {
+            customerDocumentsInclude.where = { verificationStatus };
+            customerDocumentsInclude.required = true;
+        }
+
         const result = await paginate({
             model: Customer,
             page: pageNum,
@@ -123,11 +116,12 @@ export const getAllCustomer = async (req: Request, res: Response): Promise<any> 
             sortOrder: sortOrderStr as 'ASC' | 'DESC',
             options: {
                 include: [
-                    {
-                        model: CustomerDocuments,
-                        as: 'customer_documents',
-                        attributes: ['id', 'customerId', 'aadhaarNumber', 'panNumber', 'aadhaarFile', 'panFile', 'verificationStatus', 'remarks']
-                    },
+                    // {
+                    //     model: CustomerDocuments,
+                    //     as: 'customer_documents',
+                    //     attributes: ['id', 'customerId', 'aadhaarNumber', 'panNumber', 'aadhaarFile', 'panFile', 'verificationStatus', 'remarks']
+                    // },
+                    customerDocumentsInclude,
                     {
                         model: User,
                         as: 'created_by',
