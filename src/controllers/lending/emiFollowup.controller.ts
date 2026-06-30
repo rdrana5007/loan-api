@@ -74,7 +74,7 @@ export const getAllEmiFollowup = async (req: Request, res: Response): Promise<an
             searchQuery: searchTerm,
             searchFields: [
                 'communicationType',
-                'customers.customerCode',
+                'customers.customer_code',
                 'customers.first_name',
                 'customers.last_name',
                 'created_by.full_name'
