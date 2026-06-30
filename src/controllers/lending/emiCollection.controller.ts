@@ -121,7 +121,7 @@ export const getAllEmiCollection = async (req: Request, res: Response): Promise<
             searchQuery: searchTerm,
             searchFields: [
                 'transactionReference',
-                'customers.customerCode',
+                'customers.customer_code',
                 'customers.first_name',
                 'customers.last_name',
                 'created_by.full_name'

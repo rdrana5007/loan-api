@@ -122,7 +122,7 @@ export const getAllLoan = async (req: Request, res: Response): Promise<any> => {
             searchQuery: searchTerm,
             searchFields: [
                 'loanNumber',
-                'customers.customerCode',
+                'customers.customer_code',
                 'customers.first_name',
                 'customers.last_name',
                 'customers.email',
@@ -174,10 +174,18 @@ export const getLoan = async (req: Request, res: Response): Promise<any> => {
                 {
                     model: Customer,
                     as: 'customers',
-                    include: [{ model: CustomerDocuments, as: 'customer_documents' }]
+                    attributes: ['id', 'createdBy', 'customerCode', 'firstName', 'lastName', 'email', 'phone', 'isActive'],
+                    include: [
+                        {
+                            model: CustomerDocuments,
+                            as: 'customer_documents',
+                            attributes: ['id', 'customerId', 'verificationStatus']
+                        }
+                    ]
                 },
                 { model: User, as: 'collectors', attributes: ['id', 'roleId', 'fullName'] },
-                { model: User, as: 'created_by', attributes: ['id', 'roleId', 'fullName'] }
+                { model: User, as: 'created_by', attributes: ['id', 'roleId', 'fullName'] },
+                { model: EmiSchedule, as: 'emi_schedules' }
             ]
         });
         if (!loan) return errorResponse(res, 404, 'Loan not found');
