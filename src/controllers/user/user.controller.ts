@@ -119,6 +119,49 @@ export const getUser = async (req: Request, res: Response): Promise<any> => {
     }
 };
 
+// Get all Collector Name
+export const getAllCollectorName = async (req: Request, res: Response): Promise<any> => {
+    const { page, pageSize, search, sortField, sortOrder } = req.query;
+    const pageNum = page ? parseInt(page as string, 10) : 1;
+    const size = pageSize ? parseInt(pageSize as string, 10) : 10;
+    const searchTerm = search ? (search as string) : '';
+    const sortFieldStr = sortField ? (sortField as string) : 'createdAt';
+    const sortOrderStr = sortOrder ? (sortOrder as string).toUpperCase() : 'DESC';
+
+    try {
+        let whereClause: any = {
+            roleId: { [Op.eq]: COLLECTOR } 
+        };
+
+        if (searchTerm) {
+            whereClause = searchTerm
+                ? {
+                    ...whereClause,
+                    [Op.or]: [
+                        { fullName: { [Op.like]: `%${searchTerm}%` } }
+                    ]
+                }
+                : {};
+        }
+
+        const result = await paginate({
+            model: User,
+            page: pageNum,
+            pageSize: size,
+            whereClause,
+            searchQuery: searchTerm,
+            searchFields: ['fullName'],
+            sortField: sortFieldStr,
+            sortOrder: sortOrderStr as 'ASC' | 'DESC',
+            options: { attributes: ['id', 'fullName'] }
+        });
+
+        successResponse(res, 200, 'Collectors fetched successfully', result);
+    } catch (error: any) {
+        catchResponse(res, 'Error fetching collectors', error?.errors?.[0]?.message || error.message || 'Unknown error');
+    }
+};
+
 // Update User (Manager / Collector) by ID
 export const updateUser = async (req: Request, res: Response): Promise<any> => {
     const userId = Number(req.params.id);
