@@ -64,6 +64,26 @@ export const getAllUserSchema = (req: Request, res: Response, next: NextFunction
     }
 };
 
+// Get all collector name schema
+export const getAllCollectorNameSchema = (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const schema = Joi.object({
+            page: Joi.number().integer().min(1).optional(),
+            pageSize: Joi.number().integer().min(1).max(100).optional(),
+            search: Joi.string().max(100).optional(),
+            sortField: Joi.string().valid('userName', 'email', 'createdAt', 'updatedAt').optional(),
+            sortOrder: Joi.string().valid('asc', 'desc').optional()
+        });
+
+        const { error } = schema.validate(req.query);
+        if (error) return errorResponse(res, 400, error.details[0].message);
+
+        next();
+    } catch (error) {
+        return catchResponse(res, 'Error validating get all collectors', error);
+    }
+};
+
 // Update user by id schema
 export const updateUserSchema = (req: Request, res: Response, next: NextFunction) => {
     try {
