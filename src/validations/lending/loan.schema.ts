@@ -65,6 +65,27 @@ export const getLoanByIdSchema = (req: Request, res: Response, next: NextFunctio
     }
 };
 
+// Get all emi schedule by loan id schema
+export const getAllEmiScheduleSchema = (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const schema = Joi.object({
+            page: Joi.number().integer().min(1).optional(),
+            pageSize: Joi.number().integer().min(1).max(100).optional(),
+            search: Joi.string().max(100).optional(),
+            sortField: Joi.string().valid('createdAt', 'updatedAt').optional(),
+            sortOrder: Joi.string().valid('asc', 'desc').optional(),
+            status: Joi.string().valid('pending', 'partial', 'paid', 'overdue').optional()
+        });
+
+        const { error } = schema.validate(req.query);
+        if (error) return errorResponse(res, 400, error.details[0].message);
+
+        next();
+    } catch (error) {
+        return catchResponse(res, 'Error validating get all emi schedules', error);
+    }
+};
+
 // Update loan by id schema
 export const updateLoanSchema = (req: Request, res: Response, next: NextFunction) => {
     try {
