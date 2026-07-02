@@ -1,6 +1,6 @@
 import { Router } from "express";
-import { createLoan, deleteLoan, getAllLoan, getLoan, updateLoan } from "../../controllers";
-import { createLoanSchema, getAllLoanSchema, idParamSchema, updateLoanSchema } from "../../validations";
+import { createLoan, deleteLoan, getAllEmiSchedule, getAllLoan, getLoan, updateLoan } from "../../controllers";
+import { createLoanSchema, getAllEmiScheduleSchema, getAllLoanSchema, idParamSchema, updateLoanSchema } from "../../validations";
 import { isCollector, isManager } from "../../middlewares";
 
 const router: Router = Router();
@@ -12,7 +12,10 @@ router.post('/', isManager, createLoanSchema, createLoan);
 router.get('/', isCollector, getAllLoanSchema, getAllLoan);
 
 // Get loan by id
-router.get('/:id', isManager, idParamSchema, getLoan);
+router.get('/:id', isCollector, idParamSchema, getLoan);
+
+// Get all emi schedule by loan id
+router.get('/:id/emi-schedules', isCollector, getAllEmiScheduleSchema, getAllEmiSchedule);
 
 // Update loan by id
 router.patch('/:id', isManager, updateLoanSchema, updateLoan);
