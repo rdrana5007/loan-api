@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { Customer, CustomerDocuments, EmiSchedule, Income, Loan, User } from "../../models";
-import { calculateDueDate, calculateEMIBorrowingAmounts, catchResponse, errorResponse, generateRandomCode, paginate, successResponse } from "../../utils";
+import { calculateEMILoanAmounts, calculateLoanEndDate, calculateProcessingFee, catchResponse, errorResponse, generateRandomCode, paginate, successResponse } from "../../utils";
 import { Op } from "sequelize";
 import { COLLECTOR, MANAGER } from "../../constants";
 import { sequelize } from "../../config";
@@ -8,7 +8,7 @@ import { sequelize } from "../../config";
 // Create Loan
 export const createLoan = async (req: Request, res: Response): Promise<any> => {
     const managerId = (req as any).user.id;
-    const { customerId, collectorId, loanAmount, interestRate, tenureMonths, processingFee, startDate, notes } = req.body;
+    const { customerId, collectorId, loanAmount, interestRate, processingFee, processingFeeType, installmentCount, repaymentFrequency, startDate, notes } = req.body;
 
     const t = await sequelize.transaction();
 
@@ -32,8 +32,10 @@ export const createLoan = async (req: Request, res: Response): Promise<any> => {
         if (!manager) return rollbackAndReturn(404, 'Manager not found');
 
         const loanNumber: string = generateRandomCode('LN'); // Generate Loan Number
+        
+        const processingFeeAmount: number = calculateProcessingFee(Number(loanAmount), Number(processingFee), processingFeeType); // Calculate processing fee amount
 
-        const endDate: Date = calculateDueDate(startDate, tenureMonths); // Calculate Loan End Date
+        const endDate: Date = calculateLoanEndDate(startDate, installmentCount, repaymentFrequency);  // Calculate Loan End Date
 
         // create a new loan
         const loan: Loan = await Loan.create({
@@ -43,20 +45,22 @@ export const createLoan = async (req: Request, res: Response): Promise<any> => {
             loanNumber,
             loanAmount,
             interestRate,
-            tenureMonths,
-            processingFee,
+            processingFee: processingFeeAmount,
+            processingFeeType,
+            installmentCount,
+            repaymentFrequency,
             startDate,
             endDate,
             notes
         }, { transaction: t });
 
-        if (Number(processingFee) > 0) {
+        if (Number(processingFeeAmount) > 0) {
             // create admin income record
             await Income.create({
                 category: 'Loan Processing Fee',
                 createdBy: managerId,
                 source: `Loan #${loanNumber} for Customer #${customerId}`,
-                amount: processingFee,
+                amount: processingFeeAmount,
                 remarks: 'Income generated from loan creation'
             }, { transaction: t });
         }
@@ -72,7 +76,7 @@ export const createLoan = async (req: Request, res: Response): Promise<any> => {
 // Get all Loan
 export const getAllLoan = async (req: Request, res: Response): Promise<any> => {
     const { id: userId, roleId: role } = (req as any).user;
-    const { page, pageSize, search, sortField, sortOrder, status, fromDate, toDate } = req.query;
+    const { page, pageSize, search, sortField, sortOrder, repaymentFrequency, status, fromDate, toDate } = req.query;
     const pageNum = page ? parseInt(page as string, 10) : 1;
     const size = pageSize ? parseInt(pageSize as string, 10) : 10;
     const searchTerm = search ? (search as string) : '';
@@ -84,6 +88,10 @@ export const getAllLoan = async (req: Request, res: Response): Promise<any> => {
 
         if (role === COLLECTOR) {
             whereClause.collectorId = userId;
+        }
+
+        if (repaymentFrequency) {
+            whereClause.repaymentFrequency = repaymentFrequency;
         }
 
         if (status) {
@@ -236,7 +244,7 @@ export const getAllEmiSchedule = async (req: Request, res: Response): Promise<an
 export const updateLoan = async (req: Request, res: Response): Promise<any> => {
     const loanId = Number(req.params.id);
     const managerId = (req as any).user.id;
-    const { collectorId, interestRate, tenureMonths, disbursedAmount, startDate, status, notes, rejectionReason } = req.body;
+    const { collectorId, interestRate, disbursedAmount, installmentCount, repaymentFrequency, startDate, status, notes, rejectionReason } = req.body;
 
     const t = await sequelize.transaction();
 
@@ -306,8 +314,8 @@ export const updateLoan = async (req: Request, res: Response): Promise<any> => {
 
         // UPDATE
         else {
-            const endDate: Date = calculateDueDate(startDate, tenureMonths); // Calculate Loan End Date
-            updatedLoan = await loan.update({ collectorId, updatedBy: managerId, interestRate, tenureMonths, status, notes, startDate, endDate }, { transaction: t });
+            const endDate: Date = calculateLoanEndDate(startDate, installmentCount, repaymentFrequency);  // Calculate Loan End Date
+            updatedLoan = await loan.update({ collectorId, updatedBy: managerId, interestRate, installmentCount, repaymentFrequency, status, notes, startDate, endDate }, { transaction: t });
             return commitAndReturn('Loan updated successfully', updatedLoan);
         }
     } catch (error: any) {
@@ -316,28 +324,28 @@ export const updateLoan = async (req: Request, res: Response): Promise<any> => {
     }
 };
 
-// Generates the EMI schedule for a loan
+// Generates the EMI schedule for a Loan
 async function generateEmiSchedule(loan: Loan, t: any) {
     if (!loan.disbursedAmount) throw new Error('Loan must be disbursed first');
 
     const principalAmount: number = Number(loan.disbursedAmount || loan.loanAmount);
 
     // calculate emi amounts
-    const { monthlyPrincipal, monthlyInterest, emiAmount } = calculateEMIBorrowingAmounts(principalAmount, loan.interestRate, loan.tenureMonths);
+    const { installmentPrincipal, installmentInterest, installmentAmount } = calculateEMILoanAmounts(principalAmount, loan.interestRate, loan.installmentCount);
 
     const emis = [];
 
-    for (let i = 1; i <= loan.tenureMonths; i++) {
-        const dueDate: Date = calculateDueDate(loan.startDate, i); // Calculate Loan Due Date
+    for (let i = 1; i <= loan.installmentCount; i++) {
+        const dueDate: Date = calculateLoanEndDate(loan.startDate, i, loan.repaymentFrequency as 'daily' | 'weekly' | 'monthly');  // Calculate Loan Due Date
 
         emis.push({
             loanId: loan.id,
             installmentNo: i,
-            emiScheduleAmount: emiAmount,
-            principalAmount: monthlyPrincipal,
-            interestAmount: monthlyInterest,
+            emiScheduleAmount: installmentAmount,
+            principalAmount: installmentPrincipal,
+            interestAmount: installmentInterest,
             paidAmount: 0,
-            balanceAmount: emiAmount,
+            balanceAmount: installmentAmount,
             dueDate
         });
     }
@@ -351,6 +359,11 @@ export const deleteLoan = async (req: Request, res: Response): Promise<any> => {
     try {
         const loan: Loan | null = await Loan.findByPk(loanId);
         if (!loan) return errorResponse(res, 404, 'Loan not found');
+
+        const NON_DELETABLE_STATUSES = ['approved', 'active', 'defaulted'] as const;
+        if (NON_DELETABLE_STATUSES.includes(loan.status as typeof NON_DELETABLE_STATUSES[number])) {
+            return errorResponse(res, 400, `Loan with status '${loan.status}' cannot be deleted.`);
+        }
 
         await Loan.destroy({ where: { id: loanId } });
         successResponse(res, 200, 'Loan deleted successfully', null);
