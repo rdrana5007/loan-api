@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { Borrowing, BorrowingInstallment, Counterparty, User } from "../../models";
-import { calculateDueDate, calculateEMIBorrowingAmounts, catchResponse, errorResponse, generateRandomCode, paginate, successResponse } from "../../utils";
+import { calculateDueDate, calculateEMILoanAmounts, catchResponse, errorResponse, generateRandomCode, paginate, successResponse } from "../../utils";
 import { sequelize } from "../../config";
 import { Op } from "sequelize";
 
@@ -35,7 +35,7 @@ export const createBorrowing = async (req: Request, res: Response): Promise<any>
         const endDate: Date = calculateDueDate(startDate, tenureMonths); // Calculate Loan End Date
 
         // calculate borrowing amounts
-        const { principal, totalInterest, totalPayable, emiAmount } = calculateEMIBorrowingAmounts(principalAmount, interestRate, tenureMonths);
+        const { principal, totalInterest, totalPayable, installmentAmount } = calculateEMILoanAmounts(principalAmount, interestRate, tenureMonths);
 
         // create a new loan
         const borrowing: Borrowing = await Borrowing.create({
@@ -45,7 +45,7 @@ export const createBorrowing = async (req: Request, res: Response): Promise<any>
             principalAmount: principal,
             interestRate,
             tenureMonths,
-            emiAmount,
+            emiAmount: installmentAmount,
             totalInterest,
             totalPayable,
             outstandingPrincipal: principal,
@@ -235,7 +235,7 @@ export const updateBorrowing = async (req: Request, res: Response): Promise<any>
         // UPDATE
         else {
             // calculate borrowing amounts
-            const { principal, totalInterest, totalPayable, emiAmount } = calculateEMIBorrowingAmounts(principalAmount, interestRate, tenureMonths);
+            const { principal, totalInterest, totalPayable, installmentAmount } = calculateEMILoanAmounts(principalAmount, interestRate, tenureMonths);
 
             const endDate: Date = calculateDueDate(startDate, tenureMonths); // Calculate Loan End Date
 
@@ -244,7 +244,7 @@ export const updateBorrowing = async (req: Request, res: Response): Promise<any>
                 principalAmount: principal,
                 interestRate,
                 tenureMonths,
-                emiAmount,
+                emiAmount: installmentAmount,
                 totalInterest,
                 totalPayable,
                 outstandingPrincipal: principal,
@@ -267,7 +267,7 @@ async function generateBorrowingInstallment(borrowing: Borrowing, t: any) {
     const { principalAmount, interestRate, tenureMonths } = borrowing;
 
     // calculate borrowing amounts
-    const { monthlyPrincipal, monthlyInterest, emiAmount } = calculateEMIBorrowingAmounts(principalAmount, interestRate, tenureMonths);
+    const { installmentPrincipal, installmentInterest, installmentAmount } = calculateEMILoanAmounts(principalAmount, interestRate, tenureMonths);
 
     const installments = [];
 
@@ -277,11 +277,11 @@ async function generateBorrowingInstallment(borrowing: Borrowing, t: any) {
         installments.push({
             borrowingId: borrowing.id,
             installmentNo: i,
-            principalAmount: monthlyPrincipal,
-            interestAmount: monthlyInterest,
-            totalAmount: emiAmount,
+            principalAmount: installmentPrincipal,
+            interestAmount: installmentInterest,
+            totalAmount: installmentAmount,
             paidAmount: 0,
-            balanceAmount: emiAmount,
+            balanceAmount: installmentAmount,
             dueDate
         });
     }

@@ -13,9 +13,11 @@ interface LoanAttributes {
     loanNumber: string; // 1234560002
     loanAmount: number;
     interestRate: number;
-    tenureMonths: number; // Loan duration
     processingFee: number;
+    processingFeeType: string;
     disbursedAmount?: number;
+    installmentCount: number; // Loan duration
+    repaymentFrequency: string;
     status: string;
     notes?: string | null;
     rejectionReason?: string | null; // Poor credit history, Invalid documents, Customer not eligible, Fraud suspicion
@@ -31,7 +33,7 @@ interface LoanAttributes {
 
 interface LoanCreationAttributes extends Optional<
     LoanAttributes,
-    'id' | 'updatedBy' | 'approvedBy' | 'rejectedBy' | 'closedBy' | 'disbursedAmount' | 'status' | 'notes' | 'rejectionReason' | 'defaultReason' | 'approvedAt' | 'rejectedAt' | 'disbursedAt' | 'closedAt' | 'defaultedAt'
+    'id' | 'updatedBy' | 'approvedBy' | 'rejectedBy' | 'closedBy' | 'disbursedAmount' | 'processingFeeType' | 'repaymentFrequency' | 'status' | 'notes' | 'rejectionReason' | 'defaultReason' | 'approvedAt' | 'rejectedAt' | 'disbursedAt' | 'closedAt' | 'defaultedAt'
 > {};
 
 class Loan extends Model<LoanAttributes, LoanCreationAttributes> {
@@ -46,9 +48,11 @@ class Loan extends Model<LoanAttributes, LoanCreationAttributes> {
     declare loanNumber: string;
     declare loanAmount: number;
     declare interestRate: number;
-    declare tenureMonths: number;
     declare processingFee: number;
+    declare processingFeeType: string;
     declare disbursedAmount?: number;
+    declare installmentCount: number;
+    declare repaymentFrequency: string;
     declare status: string;
     declare notes?: string | null;
     declare rejectionReason?: string | null;
@@ -113,17 +117,27 @@ Loan.init(
             type: DataTypes.DECIMAL(5, 2),
             allowNull: false
         },
-        tenureMonths: {
-            type: DataTypes.INTEGER,
-            allowNull: false
-        },
         processingFee: {
             type: DataTypes.DECIMAL(10, 2),
             allowNull: false
         },
+        processingFeeType: {
+            type: DataTypes.ENUM('flat', 'percentage'),
+            allowNull: false,
+            defaultValue: 'flat'
+        },
         disbursedAmount: {
             type: DataTypes.DECIMAL(10, 2),
             defaultValue: 0
+        },
+        installmentCount: {
+            type: DataTypes.INTEGER,
+            allowNull: false
+        },
+        repaymentFrequency: {
+            type: DataTypes.ENUM('daily', 'weekly', 'monthly'),
+            allowNull: false,
+            defaultValue: 'monthly'
         },
         status: {
             type: DataTypes.ENUM('pending', 'approved', 'rejected', 'active', 'closed', 'defaulted'),
