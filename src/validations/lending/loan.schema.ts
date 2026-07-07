@@ -10,8 +10,10 @@ export const createLoanSchema = (req: Request, res: Response, next: NextFunction
             collectorId: Joi.number().integer().positive().required(),
             loanAmount: Joi.number().positive().precision(2).required(),
             interestRate: Joi.number().min(0).max(100).precision(2).required(),
-            tenureMonths: Joi.number().integer().positive().required(),
             processingFee: Joi.number().min(0).precision(2).required(),
+            processingFeeType: Joi.string().valid('flat', 'percentage').default('flat'),
+            installmentCount: Joi.number().integer().positive().required(),
+            repaymentFrequency: Joi.string().valid('daily', 'weekly', 'monthly').default('monthly'),
             status: Joi.string().valid('pending', 'approved', 'rejected', 'active', 'closed', 'defaulted').default('pending'),
             startDate: Joi.date().iso().required(),
             notes: Joi.string().max(2000).allow('', null).optional()
@@ -35,6 +37,7 @@ export const getAllLoanSchema = (req: Request, res: Response, next: NextFunction
             search: Joi.string().max(100).optional(),
             sortField: Joi.string().valid('createdAt', 'updatedAt').optional(),
             sortOrder: Joi.string().valid('asc', 'desc').optional(),
+            repaymentFrequency: Joi.string().valid('daily', 'weekly', 'monthly').optional(),
             status: Joi.string().valid('pending', 'approved', 'rejected', 'active', 'closed', 'defaulted').optional(),
             fromDate: Joi.date().optional(),
             toDate: Joi.date().optional()
@@ -72,7 +75,7 @@ export const getAllEmiScheduleSchema = (req: Request, res: Response, next: NextF
             page: Joi.number().integer().min(1).optional(),
             pageSize: Joi.number().integer().min(1).max(100).optional(),
             search: Joi.string().max(100).optional(),
-            sortField: Joi.string().valid('createdAt', 'updatedAt').optional(),
+            sortField: Joi.string().valid('id', 'installmentNo', 'createdAt', 'updatedAt').optional(),
             sortOrder: Joi.string().valid('asc', 'desc').optional(),
             status: Joi.string().valid('pending', 'partial', 'paid', 'overdue').optional()
         });
@@ -92,8 +95,8 @@ export const updateLoanSchema = (req: Request, res: Response, next: NextFunction
         const schema = Joi.object({
             collectorId: Joi.number().integer().positive().optional(),
             interestRate: Joi.number().min(0).max(100).precision(2).optional(),
-            tenureMonths: Joi.number().integer().positive().optional(),
             disbursedAmount: Joi.number().positive().precision(2).min(0).optional(),
+            installmentCount: Joi.number().integer().positive().optional(),
             status: Joi.string().valid('pending', 'approved', 'rejected', 'active', 'closed', 'defaulted').optional(),
             startDate: Joi.date().iso().optional(),
             notes: Joi.string().max(2000).allow('', null).optional(),

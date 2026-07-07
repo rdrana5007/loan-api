@@ -34,6 +34,11 @@ export const removeUploadedFiles = async (...files: (string | null | undefined)[
     await Promise.all(files.filter(Boolean).map(file => removeFile(file as string)));
 };
 
+// generate user code
+export const generateUserCode = (prefix: string): string => {
+    return `${prefix}-${randomUUID().slice(0, 8).toUpperCase()}`
+};
+
 // generate random code
 export const generateRandomCode = (prefixCode: string): string => {
     // Generate a random 4-digit number
@@ -46,6 +51,14 @@ export const generateRandomCode = (prefixCode: string): string => {
     return `${prefixCode}${randomNumber}${randomString}`;
 };
 
+// calculate processing fee
+export const calculateProcessingFee = (loanAmount: number, fee: number, type: 'flat' | 'percentage') => {
+    if (type === 'percentage') {
+        return Number(((loanAmount * fee) / 100).toFixed(2));
+    }
+    return fee;
+};
+
 // calculate loan due date
 export const calculateDueDate = (startDate: string | Date, tenureMonths: number): Date => {
     const date = new Date(startDate);
@@ -53,25 +66,39 @@ export const calculateDueDate = (startDate: string | Date, tenureMonths: number)
     return date;
 };
 
-// generate user code
-export const generateUserCode = (prefix: string): string => {
-    return `${prefix}-${randomUUID().slice(0, 8).toUpperCase()}`
+// calculate loan end date
+export const calculateLoanEndDate = (startDate: string | Date, installmentCount: number, repaymentFrequency: 'daily' | 'weekly' | 'monthly'): Date => {
+    const date = new Date(startDate);
+    switch (repaymentFrequency) {
+        case 'daily':
+            date.setDate(date.getDate() + installmentCount);
+            break;
+        case 'weekly':
+            date.setDate(date.getDate() + (installmentCount * 7));
+            break;
+        case 'monthly':
+            date.setMonth(date.getMonth() + installmentCount);
+            break;
+        default:
+            throw new Error('Invalid repayment frequency');
+    }
+    return date;
 };
 
-// calculate emi borrowing amounts
-export const calculateEMIBorrowingAmounts = (principalAmount: number, interestRate: number, tenureMonths: number) => {
+// calculate emi loan amounts
+export const calculateEMILoanAmounts = (principalAmount: number, interestRate: number, installmentCount: number) => {
     const principal: number = Number(principalAmount);
     const rate: number = Number(interestRate);
 
     const totalInterest: number = +(principal * rate / 100).toFixed(2);
     const totalPayable: number = +(principal + totalInterest).toFixed(2);
 
-    const monthlyPrincipal: number = +(principal / tenureMonths).toFixed(2);
-    const monthlyInterest: number = +(totalInterest / tenureMonths).toFixed(2);
+    const installmentPrincipal: number = +(principal / installmentCount).toFixed(2);
+    const installmentInterest: number = +(totalInterest / installmentCount).toFixed(2);
 
-    const emiAmount: number = +(monthlyPrincipal + monthlyInterest).toFixed(2);
+    const installmentAmount: number = +(installmentPrincipal + installmentInterest).toFixed(2);
 
-    return { principal, totalInterest, totalPayable, monthlyPrincipal, monthlyInterest, emiAmount };
+    return { principal, totalInterest, totalPayable, installmentPrincipal, installmentInterest, installmentAmount };
 };
 
 // get status counts
