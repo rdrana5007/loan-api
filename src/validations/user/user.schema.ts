@@ -71,7 +71,7 @@ export const getAllCollectorNameSchema = (req: Request, res: Response, next: Nex
             page: Joi.number().integer().min(1).optional(),
             pageSize: Joi.number().integer().min(1).max(100).optional(),
             search: Joi.string().max(100).optional(),
-            sortField: Joi.string().valid('userName', 'email', 'createdAt', 'updatedAt').optional(),
+            sortField: Joi.string().valid('createdAt', 'updatedAt').optional(),
             sortOrder: Joi.string().valid('asc', 'desc').optional()
         });
 
