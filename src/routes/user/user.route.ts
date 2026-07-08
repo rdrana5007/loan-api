@@ -15,7 +15,7 @@ router.get('/', isManager, getAllUserSchema, getAllUser);
 router.get('/:id', isManager, idParamSchema, getUser);
 
 // Get all collector name
-router.get('/:id/collectors', isManager, getAllCollectorNameSchema, getAllCollectorName);
+router.get('/collectors/name', isManager, getAllCollectorNameSchema, getAllCollectorName);
 
 // Update user by id
 router.patch('/:id', isManager, updateUserSchema, updateUser);
