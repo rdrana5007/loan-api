@@ -72,7 +72,7 @@ export const getAllCustomerCodeSchema = (req: Request, res: Response, next: Next
             page: Joi.number().integer().min(1).optional(),
             pageSize: Joi.number().integer().min(1).max(100).optional(),
             search: Joi.string().max(100).optional(),
-            sortField: Joi.string().valid('firstName', 'lastName', 'email', 'createdAt', 'updatedAt').optional(),
+            sortField: Joi.string().valid('createdAt', 'updatedAt').optional(),
             sortOrder: Joi.string().valid('asc', 'desc').optional()
         });
 

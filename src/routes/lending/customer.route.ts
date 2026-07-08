@@ -19,7 +19,7 @@ router.get('/', isManager, getAllCustomerSchema, getAllCustomer);
 router.get('/:id', isManager, idParamSchema, getCustomer);
 
 // Get all customer code
-router.get('/:id/codes', isCollector, getAllCustomerCodeSchema, getAllCustomerCode);
+router.get('/cust/codes', isCollector, getAllCustomerCodeSchema, getAllCustomerCode);
 
 // Update customer by id
 router.patch('/:id', multiFileUploadMiddleware([
