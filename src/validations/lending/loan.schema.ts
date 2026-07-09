@@ -52,22 +52,6 @@ export const getAllLoanSchema = (req: Request, res: Response, next: NextFunction
     }
 };
 
-// Get loan by id schema
-export const getLoanByIdSchema = (req: Request, res: Response, next: NextFunction) => {
-    try {
-        const schema = Joi.object({
-            id: Joi.number().integer().positive().required()
-        });
-
-        const { error } = schema.validate(req.params);
-        if (error) return errorResponse(res, 400, error.details[0].message);
-
-        next();
-    } catch (error) {
-        return catchResponse(res, 'Error validating get loan', error);
-    }
-};
-
 // Get all emi schedule by loan id schema
 export const getAllEmiScheduleSchema = (req: Request, res: Response, next: NextFunction) => {
     try {

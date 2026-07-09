@@ -10,14 +10,13 @@ export const createEmiFollowup = async (req: Request, res: Response): Promise<an
     const { emiScheduleId, loanId, customerId, communicationType, remarks, followUpDate, nextFollowupDate } = req.body;
 
     try {
-        const [emi, loan, customer, collector]: [EmiSchedule | null, Loan | null, Customer | null, User | null] = await Promise.all([
+        const [emi, customer, collector]: [EmiSchedule | null, Customer | null, User | null] = await Promise.all([
             EmiSchedule.findByPk(emiScheduleId),
-            Loan.findByPk(loanId),
             Customer.findByPk(customerId),
             User.findOne({ where: { id: collectorId, roleId: COLLECTOR } })
         ]);
         if (!emi) return errorResponse(res, 404, 'Emi not found');
-        if (!loan) return errorResponse(res, 404, 'Loan not found');
+        if (emi.loanId !== loanId) return errorResponse(res, 404, 'Loan not found');
         if (!customer) return errorResponse(res, 404, 'Customer not found');
         if (!collector) return errorResponse(res, 404, 'Collector not found');
 
@@ -51,6 +50,66 @@ export const getAllEmiFollowup = async (req: Request, res: Response): Promise<an
 
     try {
         let whereClause: any = {};
+
+        if (role === COLLECTOR) {
+            whereClause.collectorId = userId;
+        }
+
+        if (status) {
+            whereClause.status = status;
+        }
+
+        if (searchTerm) {
+            whereClause[Op.or] = [
+                { communicationType: { [Op.like]: `%${searchTerm}%` } }
+            ];
+        }
+
+        const result = await paginate({
+            model: EmiFollowup,
+            page: pageNum,
+            pageSize: size,
+            whereClause,
+            searchQuery: searchTerm,
+            searchFields: [
+                'communicationType',
+                'customers.customer_code',
+                'customers.first_name',
+                'customers.last_name',
+                'created_by.full_name'
+            ],
+            sortField: sortFieldStr,
+            sortOrder: sortOrderStr as 'ASC' | 'DESC',
+            options: {
+                include: [
+                    { model: Customer, as: 'customers', attributes: ['id', 'customerCode', 'firstName', 'lastName'] },
+                    { model: User, as: 'created_by', attributes: ['id', 'roleId', 'fullName'] }
+                ]
+            }
+        });
+
+        successResponse(res, 200, 'Emi followup fetched successfully', result);
+    } catch (error: any) {
+        catchResponse(res, 'Error fetching emi followups', error?.errors?.[0]?.message || error.message || 'Unknown error');
+    }
+};
+
+// Get all Emi Followup by Loan ID
+export const getEmiFollowupsByLoan = async (req: Request, res: Response): Promise<any> => {
+    const loanId = Number(req.params.id);
+    const { id: userId, roleId: role } = (req as any).user;
+    const { page, pageSize, search, sortField, sortOrder, status } = req.query;
+    const pageNum = page ? parseInt(page as string, 10) : 1;
+    const size = pageSize ? parseInt(pageSize as string, 10) : 10;
+    const searchTerm = search ? (search as string) : '';
+    const sortFieldStr = sortField ? (sortField as string) : 'createdAt';
+    const sortOrderStr = sortOrder ? (sortOrder as string).toUpperCase() : 'DESC';
+
+    try {
+        const loan: Loan | null = await Loan.findByPk(loanId);
+        if (!loan) return errorResponse(res, 404, 'Loan not found');
+
+        let whereClause: any = { loanId };
 
         if (role === COLLECTOR) {
             whereClause.collectorId = userId;
