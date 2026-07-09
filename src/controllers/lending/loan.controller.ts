@@ -173,6 +173,52 @@ export const getAllLoan = async (req: Request, res: Response): Promise<any> => {
     }
 };
 
+// Get all Emi Schedule by Loan ID
+export const getAllEmiSchedule = async (req: Request, res: Response): Promise<any> => {
+    const loanId = Number(req.params.id);
+    const { page, pageSize, search, sortField, sortOrder, status } = req.query;
+    const pageNum = page ? parseInt(page as string, 10) : 1;
+    const size = pageSize ? parseInt(pageSize as string, 10) : 10;
+    const searchTerm = search ? (search as string) : '';
+    const sortFieldStr = sortField ? (sortField as string) : 'createdAt';
+    const sortOrderStr = sortOrder ? (sortOrder as string).toUpperCase() : 'DESC';
+
+    try {
+        const loan: Loan | null = await Loan.findByPk(loanId);
+        if (!loan) return errorResponse(res, 404, 'Loan not found');
+
+        let whereClause: any = { loanId };
+
+        if (status) {
+            whereClause.status = status;
+        }
+
+        const result = await paginate({
+            model: EmiSchedule,
+            page: pageNum,
+            pageSize: size,
+            whereClause,
+            searchQuery: searchTerm,
+            searchFields: [],
+            sortField: sortFieldStr,
+            sortOrder: sortOrderStr as 'ASC' | 'DESC',
+            options: {}
+        });
+
+        const loanDetail: any = {
+            id: loan.id,
+            customerId: loan.customerId,
+            collectorId: loan.collectorId,
+            createdBy: loan.createdBy,
+            loanNumber: loan.loanNumber
+        };
+
+        successResponse(res, 200, 'Emi schedules fetched successfully', { loan: loanDetail, ...result });
+    } catch (error: any) {
+        catchResponse(res, 'Error fetching emi schedules', error?.errors?.[0]?.message || error.message || 'Unknown error');
+    }
+};
+
 // Get Loan by ID
 export const getLoan = async (req: Request, res: Response): Promise<any> => {
     const loanId = Number(req.params.id);
@@ -199,44 +245,6 @@ export const getLoan = async (req: Request, res: Response): Promise<any> => {
         successResponse(res, 200, 'Loan fetched successfully', loan);
     } catch (error: any) {
         catchResponse(res, 'Error fetching loan details', error?.errors?.[0]?.message || error.message || 'Unknown error');
-    }
-};
-
-// Get all Emi Schedule by Loan ID
-export const getAllEmiSchedule = async (req: Request, res: Response): Promise<any> => {
-    const loanId = Number(req.params.id);
-    const { page, pageSize, search, sortField, sortOrder, status } = req.query;
-    const pageNum = page ? parseInt(page as string, 10) : 1;
-    const size = pageSize ? parseInt(pageSize as string, 10) : 10;
-    const searchTerm = search ? (search as string) : '';
-    const sortFieldStr = sortField ? (sortField as string) : 'createdAt';
-    const sortOrderStr = sortOrder ? (sortOrder as string).toUpperCase() : 'DESC';
-
-    try {
-        let whereClause: any = { loanId };
-
-        if (status) {
-            whereClause.status = status;
-        }
-
-        const loan: Loan | null = await Loan.findByPk(loanId);
-        if (!loan) return errorResponse(res, 404, 'Loan not found');
-
-        const result = await paginate({
-            model: EmiSchedule,
-            page: pageNum,
-            pageSize: size,
-            whereClause,
-            searchQuery: searchTerm,
-            searchFields: [],
-            sortField: sortFieldStr,
-            sortOrder: sortOrderStr as 'ASC' | 'DESC',
-            options: {}
-        });
-
-        successResponse(res, 200, 'Emi Schedules fetched successfully', { loanNumber: loan?.loanNumber, ...result });
-    } catch (error: any) {
-        catchResponse(res, 'Error fetching emi schedules', error?.errors?.[0]?.message || error.message || 'Unknown error');
     }
 };
 

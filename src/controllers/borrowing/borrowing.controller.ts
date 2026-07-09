@@ -138,6 +138,51 @@ export const getAllBorrowing = async (req: Request, res: Response): Promise<any>
     }
 };
 
+// Get all Borrowing Installment by Borrowing ID
+export const getAllBorrowingInstallment = async (req: Request, res: Response): Promise<any> => {
+    const borrowingId = Number(req.params.id);
+    const { page, pageSize, search, sortField, sortOrder, status, fromDate, toDate } = req.query;
+    const pageNum = page ? parseInt(page as string, 10) : 1;
+    const size = pageSize ? parseInt(pageSize as string, 10) : 10;
+    const searchTerm = search ? (search as string) : '';
+    const sortFieldStr = sortField ? (sortField as string) : 'createdAt';
+    const sortOrderStr = sortOrder ? (sortOrder as string).toUpperCase() : 'DESC';
+
+    try {
+        const borrowing: Borrowing | null = await Borrowing.findByPk(borrowingId);
+        if (!borrowing) return errorResponse(res, 404, 'Borrowing not found');
+
+        let whereClause: any = { borrowingId };
+
+        if (status) {
+            whereClause.status = status;
+        }
+
+        const result = await paginate({
+            model: BorrowingInstallment,
+            page: pageNum,
+            pageSize: size,
+            whereClause,
+            searchQuery: searchTerm,
+            searchFields: [],
+            sortField: sortFieldStr,
+            sortOrder: sortOrderStr as 'ASC' | 'DESC',
+            options: {}
+        });
+
+        const borrowingDetail: any = {
+            id: borrowing.id,
+            counterpartyId: borrowing.counterpartyId,
+            createdBy: borrowing.createdBy,
+            borrowingNumber: borrowing.borrowingNumber
+        };
+
+        successResponse(res, 200, 'Borrowing installments fetched successfully', { borrowing: borrowingDetail, ...result });
+    } catch (error: any) {
+        catchResponse(res, 'Error fetching borrowing installments', error?.errors?.[0]?.message || error.message || 'Unknown error');
+    }
+};
+
 // Get Borrowing by ID
 export const getBorrowing = async (req: Request, res: Response): Promise<any> => {
     const borrowingId = Number(req.params.id);

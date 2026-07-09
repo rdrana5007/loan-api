@@ -6,6 +6,7 @@ import { sequelize } from "../../../config";
 interface EmiCollectionAttributes {
     id: number;
     emiScheduleId: number;
+    loanId: number;
     customerId: number;
     collectorId: number;
     collectedAmount: number;
@@ -19,6 +20,7 @@ interface EmiCollectionCreationAttributes extends Optional<EmiCollectionAttribut
 class EmiCollection extends Model<EmiCollectionAttributes, EmiCollectionCreationAttributes> {
     declare id: number;
     declare emiScheduleId: number;
+    declare loanId: number;
     declare customerId: number;
     declare collectorId: number;
     declare collectedAmount: number;
@@ -37,6 +39,11 @@ EmiCollection.init(
         emiScheduleId: {
             type: DataTypes.INTEGER.UNSIGNED,
             references: { model: 'emi_schedules', key: 'id' },
+            allowNull: false
+        },
+        loanId: {
+            type: DataTypes.INTEGER.UNSIGNED,
+            references: { model: 'loans', key: 'id' },
             allowNull: false
         },
         customerId : {
