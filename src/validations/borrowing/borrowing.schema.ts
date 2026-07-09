@@ -46,6 +46,27 @@ export const getAllBorrowingSchema = (req: Request, res: Response, next: NextFun
     }
 };
 
+// Get all borrowing installment by borrowing id schema
+export const getAllBorrowingInstallmentSchema = (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const schema = Joi.object({
+            page: Joi.number().integer().min(1).optional(),
+            pageSize: Joi.number().integer().min(1).max(100).optional(),
+            search: Joi.string().max(100).optional(),
+            sortField: Joi.string().valid('id', 'installmentNo', 'createdAt', 'updatedAt').optional(),
+            sortOrder: Joi.string().valid('asc', 'desc').optional(),
+            status: Joi.string().valid('pending', 'approved', 'rejected', 'active', 'closed', 'defaulted').optional()
+        });
+
+        const { error } = schema.validate(req.query);
+        if (error) return errorResponse(res, 400, error.details[0].message);
+
+        next();
+    } catch (error) {
+        return catchResponse(res, 'Error validating get all borrowing installments', error);
+    }
+};
+
 // Update borrowing by id schema
 export const updateBorrowingSchema = (req: Request, res: Response, next: NextFunction) => {
     try {

@@ -11,11 +11,11 @@ router.post('/', isManager, createLoanSchema, createLoan);
 // Get all loan
 router.get('/', isCollector, getAllLoanSchema, getAllLoan);
 
-// Get loan by id
-router.get('/:id', isCollector, idParamSchema, getLoan);
-
 // Get all emi schedule by loan id
 router.get('/:id/emi-schedules', isCollector, getAllEmiScheduleSchema, getAllEmiSchedule);
+
+// Get loan by id
+router.get('/:id', isCollector, idParamSchema, getLoan);
 
 // Update loan by id
 router.patch('/:id', isManager, updateLoanSchema, updateLoan);
