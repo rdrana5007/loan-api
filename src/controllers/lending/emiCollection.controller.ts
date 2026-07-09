@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { catchResponse, errorResponse, paginate, successResponse } from "../../utils";
-import { Customer, EmiCollection, EmiSchedule, Income, User } from "../../models";
+import { Customer, EmiCollection, EmiSchedule, Income, Loan, User } from "../../models";
 import { COLLECTOR } from "../../constants";
 import { sequelize } from "../../config";
 import { Op } from "sequelize";
@@ -8,7 +8,7 @@ import { Op } from "sequelize";
 // Create Emi Collection
 export const createEmiCollection = async (req: Request, res: Response): Promise<any> => {
     const collectorId = (req as any).user.id;
-    const { emiScheduleId, customerId, collectedAmount, paymentMethod, transactionReference, remarks } = req.body;
+    const { emiScheduleId, loanId, customerId, collectedAmount, paymentMethod, transactionReference, remarks } = req.body;
 
     const t = await sequelize.transaction();
 
@@ -32,6 +32,7 @@ export const createEmiCollection = async (req: Request, res: Response): Promise<
             Customer.findByPk(customerId, { transaction: t }),
             User.findOne({ where: { id: collectorId, roleId: COLLECTOR }, transaction: t })
         ]);
+        if (emi.loanId !== loanId) return errorResponse(res, 404, 'Loan not found');
         if (!customer) return rollbackAndReturn(404, 'Customer not found');
         if (!collector) return rollbackAndReturn(404, 'Collector not found');
 
@@ -48,6 +49,7 @@ export const createEmiCollection = async (req: Request, res: Response): Promise<
         // create a new emi collection
         const emiCollection: EmiCollection = await EmiCollection.create({
             emiScheduleId,
+            loanId,
             customerId,
             collectorId,
             collectedAmount,
@@ -60,8 +62,8 @@ export const createEmiCollection = async (req: Request, res: Response): Promise<
         const balance = Number(emi.emiScheduleAmount) - paid;
         const isPaid = balance <= 0;
 
-        emi.paidAmount = paid;
-        emi.balanceAmount = balance;
+        emi.paidAmount = +(paid.toFixed(2));
+        emi.balanceAmount = +(balance.toFixed(2));
         emi.status = isPaid ? 'paid' : 'partial';
         if (isPaid) emi.paidDate = new Date();
 
@@ -98,6 +100,66 @@ export const getAllEmiCollection = async (req: Request, res: Response): Promise<
 
     try {
         let whereClause: any = {};
+
+        if (role === COLLECTOR) {
+            whereClause.collectorId = userId;
+        }
+
+        if (paymentMethod) {
+            whereClause.paymentMethod = paymentMethod;
+        }
+
+        if (searchTerm) {
+            whereClause[Op.or] = [
+                { transactionReference: { [Op.like]: `%${searchTerm}%` } }
+            ];
+        }
+
+        const result = await paginate({
+            model: EmiCollection,
+            page: pageNum,
+            pageSize: size,
+            whereClause,
+            searchQuery: searchTerm,
+            searchFields: [
+                'transactionReference',
+                'customers.customer_code',
+                'customers.first_name',
+                'customers.last_name',
+                'created_by.full_name'
+            ],
+            sortField: sortFieldStr,
+            sortOrder: sortOrderStr as 'ASC' | 'DESC',
+            options: {
+                include: [
+                    { model: Customer, as: 'customers', attributes: ['id', 'customerCode', 'firstName', 'lastName'] },
+                    { model: User, as: 'created_by', attributes: ['id', 'roleId', 'fullName'] }
+                ]
+            }
+        });
+
+        successResponse(res, 200, 'Emi collection fetched successfully', result);
+    } catch (error: any) {
+        catchResponse(res, 'Error fetching emi collections', error?.errors?.[0]?.message || error.message || 'Unknown error');
+    }
+};
+
+// Get all Emi Collection by Loan ID
+export const getEmiCollectionsByLoan = async (req: Request, res: Response): Promise<any> => {
+    const loanId = Number(req.params.id);
+    const { id: userId, roleId: role } = (req as any).user;
+    const { page, pageSize, search, sortField, sortOrder, paymentMethod } = req.query;
+    const pageNum = page ? parseInt(page as string, 10) : 1;
+    const size = pageSize ? parseInt(pageSize as string, 10) : 10;
+    const searchTerm = search ? (search as string) : '';
+    const sortFieldStr = sortField ? (sortField as string) : 'createdAt';
+    const sortOrderStr = sortOrder ? (sortOrder as string).toUpperCase() : 'DESC';
+
+    try {
+        const loan: Loan | null = await Loan.findByPk(loanId);
+        if (!loan) return errorResponse(res, 404, 'Loan not found');
+
+        let whereClause: any = { loanId };
 
         if (role === COLLECTOR) {
             whereClause.collectorId = userId;

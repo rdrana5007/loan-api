@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { createUser, deleteUser, getAllCollectorName, getAllUser, getUser, updateUser } from "../../controllers";
 import { createUserSchema, getAllCollectorNameSchema, getAllUserSchema, idParamSchema, updateUserSchema } from "../../validations";
-import { isManager } from "../../middlewares";
+import { isCollector, isManager } from "../../middlewares";
 
 const router: Router = Router();
 
@@ -15,7 +15,7 @@ router.get('/', isManager, getAllUserSchema, getAllUser);
 router.get('/:id', isManager, idParamSchema, getUser);
 
 // Get all collector name
-router.get('/collectors/name', isManager, getAllCollectorNameSchema, getAllCollectorName);
+router.get('/collectors/name', isCollector, getAllCollectorNameSchema, getAllCollectorName);
 
 // Update user by id
 router.patch('/:id', isManager, updateUserSchema, updateUser);

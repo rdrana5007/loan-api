@@ -1,7 +1,7 @@
 import { Router } from "express";
-import { createBorrowing, deleteBorrowing, getAllBorrowing, getBorrowing, updateBorrowing } from "../../controllers";
-import { createBorrowingSchema, getAllBorrowingSchema, idParamSchema, updateBorrowingSchema } from "../../validations";
-import { isManager } from "../../middlewares";
+import { createBorrowing, deleteBorrowing, getAllBorrowing, getAllBorrowingInstallment, getBorrowing, updateBorrowing } from "../../controllers";
+import { createBorrowingSchema, getAllBorrowingInstallmentSchema, getAllBorrowingSchema, idParamSchema, updateBorrowingSchema } from "../../validations";
+import { isCollector, isManager } from "../../middlewares";
 
 const router: Router = Router();
 
@@ -9,10 +9,13 @@ const router: Router = Router();
 router.post('/', isManager, createBorrowingSchema, createBorrowing);
 
 // Get all borrowing
-router.get('/', isManager, getAllBorrowingSchema, getAllBorrowing);
+router.get('/', isCollector, getAllBorrowingSchema, getAllBorrowing);
+
+// Get all emi schedule by loan id
+router.get('/:id/borrowing-installments', isCollector, getAllBorrowingInstallmentSchema, getAllBorrowingInstallment);
 
 // Get borrowing by id
-router.get('/:id', isManager, idParamSchema, getBorrowing);
+router.get('/:id', isCollector, idParamSchema, getBorrowing);
 
 // Update borrowing by id
 router.patch('/:id', isManager, updateBorrowingSchema, updateBorrowing);
