@@ -6,8 +6,8 @@ export type FileType = 'image' | 'pdf';
 
 // file size limits for different file types
 export const fileSizeLimits: Record<FileType, number> = {
-    image: 5 * 1024 * 1024, // 5 MB
-    pdf: 5 * 1024 * 1024, // 5 MB
+    image: 1 * 1024 * 1024, // 1 MB
+    pdf: 2 * 1024 * 1024, // 2 MB
 };
 
 // allowed file extensions / MIME types

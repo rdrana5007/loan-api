@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { auth, user } from "./user";
-import { customer, emiCollection, emiFollowup, expense, expenseRequest, loan } from "./lending";
+import { customer, emiCollection, emiFollowup, expense, expenseRequest, income, loan } from "./lending";
 import { borrowing, borrowingPayment, counterparty } from "./borrowing";
 import { dashboard } from "./dashboard";
 
@@ -14,6 +14,7 @@ router.use('/emi-collections', emiCollection);
 router.use('/emi-followups', emiFollowup);
 router.use('/expenses', expense);
 router.use('/expense-requests', expenseRequest);
+router.use('/incomes', income);
 router.use('/counterparties', counterparty);
 router.use('/borrowings', borrowing);
 router.use('/borrowing-payments', borrowingPayment);
