@@ -4,3 +4,4 @@ export * from './emiCollection.controller';
 export * from './emiFollowup.controller';
 export * from './expense.controller';
 export * from './expenseRequest.controller';
+export * from './income.controller';

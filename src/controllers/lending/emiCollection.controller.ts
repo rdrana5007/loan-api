@@ -30,7 +30,7 @@ export const createEmiCollection = async (req: Request, res: Response): Promise<
 
         const [customer, collector]: [Customer | null, User | null] = await Promise.all([
             Customer.findByPk(customerId, { transaction: t }),
-            User.findOne({ where: { id: collectorId, roleId: COLLECTOR }, transaction: t })
+            User.findOne({ where: { id: collectorId }, transaction: t })
         ]);
         if (emi.loanId !== loanId) return errorResponse(res, 404, 'Loan not found');
         if (!customer) return rollbackAndReturn(404, 'Customer not found');

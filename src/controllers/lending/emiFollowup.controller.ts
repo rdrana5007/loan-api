@@ -13,7 +13,7 @@ export const createEmiFollowup = async (req: Request, res: Response): Promise<an
         const [emi, customer, collector]: [EmiSchedule | null, Customer | null, User | null] = await Promise.all([
             EmiSchedule.findByPk(emiScheduleId),
             Customer.findByPk(customerId),
-            User.findOne({ where: { id: collectorId, roleId: COLLECTOR } })
+            User.findOne({ where: { id: collectorId } })
         ]);
         if (!emi) return errorResponse(res, 404, 'Emi not found');
         if (emi.loanId !== loanId) return errorResponse(res, 404, 'Loan not found');
@@ -175,25 +175,20 @@ export const getEmiFollowup = async (req: Request, res: Response): Promise<any> 
 export const updateEmiFollowup = async (req: Request, res: Response): Promise<any> => {
     const followupId = Number(req.params.id);
     const collectorId = (req as any).user.id;
-    const { status, remarks, followUpDate, nextFollowupDate } = req.body;
+    const { communicationType, status, remarks, followUpDate, nextFollowupDate } = req.body;
 
     try {
         const [followup, collector]: [EmiFollowup | null, User | null] = await Promise.all([
             EmiFollowup.findByPk(followupId),
-            User.findOne({ where: { id: collectorId, roleId: COLLECTOR } })
+            User.findOne({ where: { id: collectorId } })
         ]);
         if (!followup) return errorResponse(res, 404, 'Emi followup not found');
         if (!collector) return errorResponse(res, 404, 'Collector not found');
 
-        // check if this collector owns the followup
-        if (followup.collectorId !== collectorId) {
-            return errorResponse(res, 403, 'You are not authorized to complete this followup');
-        }
-
         if (status === 'pending') {
-            await followup.update({ remarks, followUpDate, nextFollowupDate });
+            await followup.update({ communicationType, remarks, followUpDate, nextFollowupDate });
         } else {
-            await followup.update({ status, nextFollowupDate: null });
+            await followup.update({ communicationType, status, remarks, nextFollowupDate: null });
         }
 
         successResponse(res, 200, 'Emi followup updated successfully', followup);
