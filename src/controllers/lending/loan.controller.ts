@@ -2,7 +2,7 @@ import { Request, Response } from "express";
 import { Customer, CustomerDocuments, EmiSchedule, Income, Loan, User } from "../../models";
 import { calculateEMILoanAmounts, calculateLoanEndDate, calculateProcessingFee, catchResponse, errorResponse, generateRandomCode, paginate, successResponse } from "../../utils";
 import { Op } from "sequelize";
-import { COLLECTOR, MANAGER } from "../../constants";
+import { COLLECTOR } from "../../constants";
 import { sequelize } from "../../config";
 
 // Create Loan
@@ -25,7 +25,7 @@ export const createLoan = async (req: Request, res: Response): Promise<any> => {
         const [customer, collector, manager]: [Customer | null, User | null, User | null] = await Promise.all([
             Customer.findByPk(customerId, { transaction: t }),
             User.findOne({ where: { id: collectorId, roleId: COLLECTOR }, transaction: t }),
-            User.findOne({ where: { id: managerId, roleId: MANAGER }, transaction: t })
+            User.findOne({ where: { id: managerId }, transaction: t })
         ]);
         if (!customer) return rollbackAndReturn(404, 'Customer not found');
         if (!collector) return rollbackAndReturn(404, 'Collector not found');
@@ -252,7 +252,7 @@ export const getLoan = async (req: Request, res: Response): Promise<any> => {
 export const updateLoan = async (req: Request, res: Response): Promise<any> => {
     const loanId = Number(req.params.id);
     const managerId = (req as any).user.id;
-    const { collectorId, interestRate, disbursedAmount, installmentCount, repaymentFrequency, startDate, status, notes, rejectionReason } = req.body;
+    const { collectorId, interestRate, installmentCount, repaymentFrequency, startDate, status, notes, rejectionReason } = req.body;
 
     const t = await sequelize.transaction();
 
@@ -269,7 +269,7 @@ export const updateLoan = async (req: Request, res: Response): Promise<any> => {
         const loan: Loan | null = await Loan.findByPk(loanId, { transaction: t, lock: t.LOCK.UPDATE });
         if (!loan) return rollbackAndReturn(404, 'Loan not found');
 
-        const manager: User | null = await User.findOne({ where: { id: managerId, roleId: MANAGER }, transaction: t });
+        const manager: User | null = await User.findOne({ where: { id: managerId }, transaction: t });
         if (!manager) return rollbackAndReturn(404, 'Manager not found');
 
         let updatedLoan: Loan | null = loan;
@@ -297,7 +297,10 @@ export const updateLoan = async (req: Request, res: Response): Promise<any> => {
         // ACTIVATE
         else if (status === 'active') {
             if (loan.status !== 'approved') return rollbackAndReturn(400, 'Loan must be approved first');
+
+            const disbursedAmount: number = +(loan.loanAmount) - +(loan.processingFee);
             updatedLoan = await loan.update({ status: 'active', disbursedAmount, disbursedAt: today }, { transaction: t });
+
             await generateEmiSchedule(updatedLoan, t);
             return commitAndReturn('Loan activated successfully', updatedLoan);
         }
