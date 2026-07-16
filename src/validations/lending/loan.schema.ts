@@ -79,7 +79,6 @@ export const updateLoanSchema = (req: Request, res: Response, next: NextFunction
         const schema = Joi.object({
             collectorId: Joi.number().integer().positive().optional(),
             interestRate: Joi.number().min(0).max(100).precision(2).optional(),
-            disbursedAmount: Joi.number().positive().precision(2).min(0).optional(),
             installmentCount: Joi.number().integer().positive().optional(),
             repaymentFrequency: Joi.string().valid('daily', 'weekly', 'monthly').optional(),
             status: Joi.string().valid('pending', 'approved', 'rejected', 'active', 'closed', 'defaulted').optional(),

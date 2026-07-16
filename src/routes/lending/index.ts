@@ -4,3 +4,4 @@ export { default as emiCollection } from './emiCollection.route';
 export { default as emiFollowup } from './emiFollowup.route';
 export { default as expense } from './expense.route';
 export { default as expenseRequest } from './expenseRequest.route';
+export { default as income } from './income.route';

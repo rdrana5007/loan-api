@@ -13,7 +13,7 @@ export const createEmiFollowupSchema = (req: Request, res: Response, next: NextF
             status: Joi.string().valid('pending', 'completed').default('pending'),
             remarks: Joi.string().max(1000).required(),
             followUpDate: Joi.date().iso().required(),
-            nextFollowupDate: Joi.date().iso().optional()
+            nextFollowupDate: Joi.date().iso().allow('', null).optional()
         });
 
         const { error } = schema.validate(req.body);
@@ -50,6 +50,7 @@ export const getAllEmiFollowupSchema = (req: Request, res: Response, next: NextF
 export const updateEmiFollowupSchema = (req: Request, res: Response, next: NextFunction) => {
     try {
         const schema = Joi.object({
+            communicationType: Joi.string().valid('call', 'visit', 'sms', 'email', 'whatsapp').optional(),
             status: Joi.string().valid('pending', 'completed').required(),
             remarks: Joi.string().max(1000).optional(),
             followUpDate: Joi.date().iso().optional(),
