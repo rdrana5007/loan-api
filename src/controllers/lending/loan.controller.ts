@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { Customer, CustomerDocuments, EmiSchedule, Income, Loan, User } from "../../models";
+import { Customer, CustomerDocuments, EmiFollowup, EmiSchedule, Income, Loan, User } from "../../models";
 import { calculateEMILoanAmounts, calculateLoanEndDate, calculateProcessingFee, catchResponse, errorResponse, generateRandomCode, paginate, successResponse } from "../../utils";
 import { Op } from "sequelize";
 import { COLLECTOR } from "../../constants";
@@ -202,7 +202,11 @@ export const getAllEmiSchedule = async (req: Request, res: Response): Promise<an
             searchFields: [],
             sortField: sortFieldStr,
             sortOrder: sortOrderStr as 'ASC' | 'DESC',
-            options: {}
+            options: {
+                include: [
+                    { model: EmiFollowup, as: 'emi_followups', attributes: ['id', 'status'] }
+                ]
+            }
         });
 
         const loanDetail: any = {
