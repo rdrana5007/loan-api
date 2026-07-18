@@ -287,14 +287,14 @@ export const updateLoan = async (req: Request, res: Response): Promise<any> => {
         // APPROVE
         if (status === 'approved') {
             if (loan.status !== 'pending') return rollbackAndReturn(400, 'Only pending loans can be approved');
-            updatedLoan = await loan.update({ approvedBy: managerId, status: 'approved', approvedAt: today }, { transaction: t });
+            updatedLoan = await loan.update({ status: 'approved', interestRate, installmentCount, repaymentFrequency, notes, startDate, approvedBy: managerId, approvedAt: today }, { transaction: t });
             return commitAndReturn('Loan approved successfully', updatedLoan);
         }
 
         // REJECT
         else if (status === 'rejected') {
             if (loan.status !== 'pending') return rollbackAndReturn(400, 'Only pending loans can be rejected');
-            updatedLoan = await loan.update({ rejectedBy: managerId, status: 'rejected', rejectedAt: today, rejectionReason }, { transaction: t });
+            updatedLoan = await loan.update({ status: 'rejected', notes, rejectedBy: managerId, rejectedAt: today, rejectionReason }, { transaction: t });
             return commitAndReturn('Loan rejected successfully', updatedLoan);
         }
 
@@ -303,7 +303,7 @@ export const updateLoan = async (req: Request, res: Response): Promise<any> => {
             if (loan.status !== 'approved') return rollbackAndReturn(400, 'Loan must be approved first');
 
             const disbursedAmount: number = +(loan.loanAmount) - +(loan.processingFee);
-            updatedLoan = await loan.update({ status: 'active', disbursedAmount, disbursedAt: today }, { transaction: t });
+            updatedLoan = await loan.update({ status: 'active', interestRate, installmentCount, repaymentFrequency, notes, startDate, disbursedAmount, disbursedAt: today }, { transaction: t });
 
             await generateEmiSchedule(updatedLoan, t);
             return commitAndReturn('Loan activated successfully', updatedLoan);
@@ -323,7 +323,7 @@ export const updateLoan = async (req: Request, res: Response): Promise<any> => {
             });
             if (emiCount > 0) return rollbackAndReturn(400, 'Loan cannot be closed. Some EMIs are still pending');
 
-            updatedLoan = await loan.update({ status: 'closed', closedBy: managerId, closedAt: today }, { transaction: t });
+            updatedLoan = await loan.update({ status: 'closed', notes, closedBy: managerId, closedAt: today }, { transaction: t });
             return commitAndReturn('Loan closed successfully', updatedLoan);
         }
 
