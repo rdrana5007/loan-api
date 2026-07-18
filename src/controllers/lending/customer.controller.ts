@@ -174,7 +174,9 @@ export const getAllCustomerCode = async (req: Request, res: Response): Promise<a
                 ? {
                     ...whereClause,
                     [Op.or]: [
-                        { customerCode: { [Op.like]: `%${searchTerm}%` } }
+                        { customerCode: { [Op.like]: `%${searchTerm}%` } },
+                        { firstName: { [Op.like]: `%${searchTerm}%` } },
+                        { lastName: { [Op.like]: `%${searchTerm}%` } }
                     ]
                 }
                 : {};
@@ -186,7 +188,7 @@ export const getAllCustomerCode = async (req: Request, res: Response): Promise<a
             pageSize: size,
             whereClause,
             searchQuery: searchTerm,
-            searchFields: ['customerCode'],
+            searchFields: ['customerCode', 'firstName', 'lastName'],
             sortField: sortFieldStr,
             sortOrder: sortOrderStr as 'ASC' | 'DESC',
             options: { attributes: ['id', 'customerCode'] }
