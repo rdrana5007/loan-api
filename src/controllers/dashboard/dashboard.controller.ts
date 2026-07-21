@@ -49,7 +49,7 @@ export const getDashboardSummary = async (req: Request, res: Response): Promise<
             Loan.count({ where: { status: 'pending', ...dateFilter } }),
             Loan.count({ where: { status: 'active', ...dateFilter } }),
             Loan.count({ where: { status: 'closed', ...dateFilter } }),
-            EmiCollection.sum('collectedAmount', { where: dateFilter }),
+            EmiCollection.sum('totalAmount', { where: dateFilter }),
             Borrowing.count(),
             Borrowing.count({ where: dateFilter }),
             Borrowing.count({ where: { status: 'pending', ...dateFilter } }),

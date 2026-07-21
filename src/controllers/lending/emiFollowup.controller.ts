@@ -82,6 +82,7 @@ export const getAllEmiFollowup = async (req: Request, res: Response): Promise<an
             sortOrder: sortOrderStr as 'ASC' | 'DESC',
             options: {
                 include: [
+                    { model: EmiSchedule, as: 'emi_schedules', attributes: ['id', 'installmentNo'] },
                     { model: Customer, as: 'customers', attributes: ['id', 'customerCode', 'firstName', 'lastName'] },
                     { model: User, as: 'created_by', attributes: ['id', 'roleId', 'fullName'] }
                 ]
@@ -142,6 +143,7 @@ export const getEmiFollowupsByLoan = async (req: Request, res: Response): Promis
             sortOrder: sortOrderStr as 'ASC' | 'DESC',
             options: {
                 include: [
+                    { model: EmiSchedule, as: 'emi_schedules', attributes: ['id', 'installmentNo'] },
                     { model: Customer, as: 'customers', attributes: ['id', 'customerCode', 'firstName', 'lastName'] },
                     { model: User, as: 'created_by', attributes: ['id', 'roleId', 'fullName'] }
                 ]
@@ -160,6 +162,7 @@ export const getEmiFollowup = async (req: Request, res: Response): Promise<any> 
     try {
         const followup: EmiFollowup | null = await EmiFollowup.findByPk(followupId, {
             include: [
+                { model: EmiSchedule, as: 'emi_schedules', attributes: ['id', 'installmentNo'] },
                 { model: Customer, as: 'customers', attributes: ['id', 'customerCode', 'firstName', 'lastName'] },
                 { model: User, as: 'created_by', attributes: ['id', 'roleId', 'fullName'] }
             ]
