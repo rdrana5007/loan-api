@@ -5,7 +5,7 @@ import { Loan } from "../loan";
 import EmiFollowup from "./emiFollowup.model";
 
 // EmiSchedule associations
-EmiSchedule.hasMany(EmiFollowup, { foreignKey: 'emiScheduleId', as: 'emi_followups' });
+EmiSchedule.hasOne(EmiFollowup, { foreignKey: 'emiScheduleId', as: 'emi_followups' });
 EmiFollowup.belongsTo(EmiSchedule, { foreignKey: 'emiScheduleId', as: 'emi_schedules' });
 
 // Loan associations
