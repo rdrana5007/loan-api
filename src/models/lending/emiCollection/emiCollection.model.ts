@@ -5,11 +5,10 @@ import { sequelize } from "../../../config";
 
 interface EmiCollectionAttributes {
     id: number;
-    emiScheduleId: number;
     loanId: number;
     customerId: number;
     collectorId: number;
-    collectedAmount: number;
+    totalAmount: number;
     paymentMethod: string;
     transactionReference: string; // CASH-2026-1001, UPI123456789, NEFT987654321, CHQ001254
     remarks?: string;
@@ -19,11 +18,10 @@ interface EmiCollectionCreationAttributes extends Optional<EmiCollectionAttribut
 
 class EmiCollection extends Model<EmiCollectionAttributes, EmiCollectionCreationAttributes> {
     declare id: number;
-    declare emiScheduleId: number;
     declare loanId: number;
     declare customerId: number;
     declare collectorId: number;
-    declare collectedAmount: number;
+    declare totalAmount: number;
     declare paymentMethod: string;
     declare transactionReference: string;
     declare remarks?: string | null;
@@ -35,11 +33,6 @@ EmiCollection.init(
             type: DataTypes.INTEGER.UNSIGNED,
             autoIncrement: true,
             primaryKey: true
-        },
-        emiScheduleId: {
-            type: DataTypes.INTEGER.UNSIGNED,
-            references: { model: 'emi_schedules', key: 'id' },
-            allowNull: false
         },
         loanId: {
             type: DataTypes.INTEGER.UNSIGNED,
@@ -56,7 +49,7 @@ EmiCollection.init(
             references: { model: 'users', key: 'id' },
             allowNull: false
         },
-        collectedAmount: {
+        totalAmount: {
             type: DataTypes.DECIMAL(10, 2),
             allowNull: false
         },

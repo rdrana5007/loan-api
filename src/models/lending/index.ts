@@ -3,6 +3,7 @@ export * from './customerDocuments';
 export * from './loan';
 export * from './emiSchedule';
 export * from './emiCollection';
+export * from './emiCollectionItem';
 export * from './emiFollowup';
 export * from './expense';
 export * from './expenseRequest';
