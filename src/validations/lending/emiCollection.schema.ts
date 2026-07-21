@@ -6,10 +6,9 @@ import { catchResponse, errorResponse } from "../../utils";
 export const createEmiCollectionSchema = (req: Request, res: Response, next: NextFunction) => {
     try {
         const schema = Joi.object({
-            emiScheduleId: Joi.number().integer().positive().required(),
             loanId: Joi.number().integer().positive().required(),
             customerId: Joi.number().integer().positive().required(),
-            collectedAmount: Joi.number().positive().precision(2).min(0).required(),
+            totalAmount: Joi.number().positive().precision(2).min(0).required(),
             paymentMethod: Joi.string().valid('cash', 'upi', 'bank', 'cheque').default('cash'),
             transactionReference: Joi.string().max(128).required(),
             remarks: Joi.string().max(1000).allow('', null).optional()
