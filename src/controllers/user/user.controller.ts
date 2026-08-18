@@ -47,6 +47,7 @@ export const createUser = async (req: Request, res: Response): Promise<any> => {
 
 // Get all User (Manager / Collector)
 export const getAllUser = async (req: Request, res: Response): Promise<any> => {
+    const userId = (req as any).user.id;
     const { page, pageSize, search, sortField, sortOrder, isManager, isCollector, status } = req.query;
     const pageNum = page ? parseInt(page as string, 10) : 1;
     const size = pageSize ? parseInt(pageSize as string, 10) : 10;
@@ -56,7 +57,8 @@ export const getAllUser = async (req: Request, res: Response): Promise<any> => {
 
     try {
         let whereClause: any = {
-            roleId: { [Op.ne]: ADMIN } 
+            id: { [Op.ne]: userId },
+            roleId: { [Op.ne]: ADMIN }
         };
 
         if (isManager || isCollector) {
