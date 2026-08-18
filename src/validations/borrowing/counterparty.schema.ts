@@ -60,6 +60,26 @@ export const getAllCounterpartySchema = (req: Request, res: Response, next: Next
     }
 };
 
+// Get all counterparty code schema
+export const getAllCounterpartyCodeSchema = (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const schema = Joi.object({
+            page: Joi.number().integer().min(1).optional(),
+            pageSize: Joi.number().integer().min(1).max(100).optional(),
+            search: Joi.string().max(100).optional(),
+            sortField: Joi.string().valid('createdAt', 'updatedAt').optional(),
+            sortOrder: Joi.string().valid('asc', 'desc').optional()
+        });
+
+        const { error } = schema.validate(req.query);
+        if (error) return errorResponse(res, 400, error.details[0].message);
+
+        next();
+    } catch (error) {
+        return catchResponse(res, 'Error validating get all counterparties', error);
+    }
+};
+
 // Update counterparty by id schema
 export const updateCounterpartySchema = (req: Request, res: Response, next: NextFunction) => {
     try {
