@@ -13,10 +13,10 @@ router.post('/', multiFileUploadMiddleware([
 ]), isManager, createCustomerSchema, createCustomer);
 
 // Get all customer
-router.get('/', isManager, getAllCustomerSchema, getAllCustomer);
+router.get('/', isCollector, getAllCustomerSchema, getAllCustomer);
 
 // Get customer by id
-router.get('/:id', isManager, idParamSchema, getCustomer);
+router.get('/:id', isCollector, idParamSchema, getCustomer);
 
 // Get all customer code
 router.get('/cust/codes', isCollector, getAllCustomerCodeSchema, getAllCustomerCode);

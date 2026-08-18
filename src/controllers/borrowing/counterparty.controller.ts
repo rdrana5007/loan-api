@@ -113,6 +113,48 @@ export const getCounterparty = async (req: Request, res: Response): Promise<any>
     }
 };
 
+// Get all Counterparty Code
+export const getAllCounterpartyCode = async (req: Request, res: Response): Promise<any> => {
+    const { page, pageSize, search, sortField, sortOrder } = req.query;
+    const pageNum = page ? parseInt(page as string, 10) : 1;
+    const size = pageSize ? parseInt(pageSize as string, 10) : 10;
+    const searchTerm = search ? (search as string) : '';
+    const sortFieldStr = sortField ? (sortField as string) : 'createdAt';
+    const sortOrderStr = sortOrder ? (sortOrder as string).toUpperCase() : 'DESC';
+
+    try {
+        let whereClause: any = {};
+
+        if (searchTerm) {
+            whereClause = searchTerm
+                ? {
+                    ...whereClause,
+                    [Op.or]: [
+                        { counterpartyCode: { [Op.like]: `%${searchTerm}%` } },
+                        { name: { [Op.like]: `%${searchTerm}%` } }
+                    ]
+                }
+                : {};
+        }
+
+        const result = await paginate({
+            model: Counterparty,
+            page: pageNum,
+            pageSize: size,
+            whereClause,
+            searchQuery: searchTerm,
+            searchFields: ['counterpartyCode', 'name'],
+            sortField: sortFieldStr,
+            sortOrder: sortOrderStr as 'ASC' | 'DESC',
+            options: { attributes: ['id', 'counterpartyCode'] }
+        });
+
+        successResponse(res, 200, 'Counterparties fetched successfully', result);
+    } catch (error: any) {
+        catchResponse(res, 'Error fetching counterparties', error?.errors?.[0]?.message || error.message || 'Unknown error');
+    }
+};
+
 // Update Counterparty by ID
 export const updateCounterparty = async (req: Request, res: Response): Promise<any> => {
     const counterpartyId = Number(req.params.id);
