@@ -9,10 +9,10 @@ const router: Router = Router();
 router.post('/', isManager, createUserSchema, createUser);
 
 // Get all user
-router.get('/', isManager, getAllUserSchema, getAllUser);
+router.get('/', isCollector, getAllUserSchema, getAllUser);
 
 // Get user by id
-router.get('/:id', isManager, idParamSchema, getUser);
+router.get('/:id', isCollector, idParamSchema, getUser);
 
 // Get all collector name
 router.get('/collectors/name', isCollector, getAllCollectorNameSchema, getAllCollectorName);

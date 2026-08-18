@@ -1,7 +1,7 @@
 import { Router } from "express";
-import { isManager } from "../../middlewares";
-import { createCounterpartySchema, getAllCounterpartySchema, idParamSchema, updateCounterpartySchema } from "../../validations";
-import { createCounterparty, deleteCounterparty, getAllCounterparty, getCounterparty, updateCounterparty } from "../../controllers";
+import { isCollector, isManager } from "../../middlewares";
+import { createCounterpartySchema, getAllCounterpartyCodeSchema, getAllCounterpartySchema, idParamSchema, updateCounterpartySchema } from "../../validations";
+import { createCounterparty, deleteCounterparty, getAllCounterparty, getAllCounterpartyCode, getCounterparty, updateCounterparty } from "../../controllers";
 
 const router: Router = Router();
 
@@ -9,10 +9,13 @@ const router: Router = Router();
 router.post('/', isManager, createCounterpartySchema, createCounterparty);
 
 // Get all counterparty
-router.get('/', isManager, getAllCounterpartySchema, getAllCounterparty);
+router.get('/', isCollector, getAllCounterpartySchema, getAllCounterparty);
 
 // Get counterparty by id
-router.get('/:id', isManager, idParamSchema, getCounterparty);
+router.get('/:id', isCollector, idParamSchema, getCounterparty);
+
+// Get all counterparty code
+router.get('/cp/codes', isCollector, getAllCounterpartyCodeSchema, getAllCounterpartyCode);
 
 // Update counterparty by id
 router.patch('/:id', isManager, updateCounterpartySchema, updateCounterparty);
