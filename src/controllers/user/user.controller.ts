@@ -61,8 +61,15 @@ export const getAllUser = async (req: Request, res: Response): Promise<any> => {
             roleId: { [Op.ne]: ADMIN }
         };
 
-        if (isManager || isCollector) {
-            whereClause = { roleId: isManager ? MANAGER : COLLECTOR };
+        const managerSelected: boolean = isManager === 'true';
+        const collectorSelected: boolean = isCollector === 'true';
+
+        if (managerSelected && collectorSelected) {
+            whereClause.roleId = { [Op.in]: [MANAGER, COLLECTOR] };
+        } else if (managerSelected) {
+            whereClause.roleId = MANAGER;
+        } else if (collectorSelected) {
+            whereClause.roleId = COLLECTOR;
         }
 
         if (status !== undefined) {
