@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import { Borrowing, Counterparty, Customer, EmiCollection, EmiFollowup, Expense, ExpenseRequest, Income, Loan, User } from "../../models";
 import { arrayToMonthMap, catchResponse, getDateRange, getLast6Months, getStatusCounts, successResponse } from "../../utils";
-import { allEmiFollowupStatus, allLoanStatus, COLLECTOR, MANAGER } from "../../constants";
+import { ALL_EMI_FOLLOWUP_STATUSES, ALL_LOAN_STATUSES, COLLECTOR, MANAGER } from "../../constants";
 import { sequelize } from "../../config";
 import { Op, WhereOptions } from "sequelize";
 
@@ -125,9 +125,9 @@ export const getStatusSummary = async (req: Request, res: Response): Promise<voi
         const dateFilter: WhereOptions = { createdAt: { [Op.gte]: startDate } };
 
         const [loan, borrowing, emiFollowup] = await Promise.all([
-            getStatusCounts(Loan, allLoanStatus, dateFilter),
-            getStatusCounts(Borrowing, allLoanStatus, dateFilter),
-            getStatusCounts(EmiFollowup, allEmiFollowupStatus, dateFilter)
+            getStatusCounts(Loan, ALL_LOAN_STATUSES, dateFilter),
+            getStatusCounts(Borrowing, ALL_LOAN_STATUSES, dateFilter),
+            getStatusCounts(EmiFollowup, ALL_EMI_FOLLOWUP_STATUSES, dateFilter)
         ]);
 
         const result = { loan, borrowing, emiFollowup };
