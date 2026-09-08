@@ -1,8 +1,9 @@
 import { Request, Response } from "express";
-import { Customer, CustomerDocuments, User } from "../../models";
+import { Customer, CustomerDocuments, Loan, User } from "../../models";
 import { catchResponse, errorResponse, generateUserCode, paginate, removeUploadedFiles, successResponse } from "../../utils";
 import { Op } from "sequelize";
 import { sequelize } from "../../config";
+import { NON_DELETABLE_LOAN_STATUSES } from "../../constants";
 
 // Create Customer
 export const createCustomer = async (req: Request, res: Response): Promise<any> => {
@@ -305,6 +306,28 @@ export const deleteCustomer = async (req: Request, res: Response): Promise<any> 
             return errorResponse(res, 404, 'Customer not found');
         }
 
+        // check whether customer has any non-deletable loans
+        const nonDeletableLoan = await Loan.findOne({
+            where: {
+                customerId,
+                status: Array.from(NON_DELETABLE_LOAN_STATUSES)
+            },
+            transaction: t
+        });
+
+        if (nonDeletableLoan) {
+            await t.rollback();
+            return errorResponse(res, 400, 'Customer cannot be deleted because they have one or more ongoing loans.');
+        }
+
+        const loansCount = await Loan.count({
+            where: { customerId },
+            transaction: t
+        });
+
+        // delete customer's loans
+        await Loan.destroy({ where: { customerId }, transaction: t });
+
         // delete customer documents
         await CustomerDocuments.destroy({ where: { customerId }, transaction: t });
 
@@ -312,7 +335,10 @@ export const deleteCustomer = async (req: Request, res: Response): Promise<any> 
         await Customer.destroy({ where: { id: customerId }, transaction: t });
 
         await t.commit();
-        successResponse(res, 200, 'Customer deleted successfully', null);
+
+        const message = loansCount > 0 ? 'Customer and all related loans have been deleted successfully.' : 'Customer deleted successfully';
+
+        successResponse(res, 200, message, null);
     } catch (error: any) {
         await t.rollback();
         catchResponse(res, 'Error deleting customer', error?.errors?.[0]?.message || error.message || 'Unknown error');
