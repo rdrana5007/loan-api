@@ -3,6 +3,7 @@ import { Borrowing, BorrowingInstallment, Counterparty, User } from "../../model
 import { calculateDueDate, calculateEMILoanAmounts, catchResponse, errorResponse, generateRandomCode, paginate, successResponse } from "../../utils";
 import { sequelize } from "../../config";
 import { Op } from "sequelize";
+import { NON_DELETABLE_LOAN_STATUSES } from "../../constants";
 
 // Create Borrowing
 export const createBorrowing = async (req: Request, res: Response): Promise<any> => {
@@ -37,7 +38,7 @@ export const createBorrowing = async (req: Request, res: Response): Promise<any>
         // calculate borrowing amounts
         const { principal, totalInterest, totalPayable, installmentAmount } = calculateEMILoanAmounts(principalAmount, interestRate, tenureMonths);
 
-        // create a new loan
+        // create a new borrowing
         const borrowing: Borrowing = await Borrowing.create({
             counterpartyId,
             createdBy: userId,
@@ -282,7 +283,7 @@ export const updateBorrowing = async (req: Request, res: Response): Promise<any>
             // calculate borrowing amounts
             const { principal, totalInterest, totalPayable, installmentAmount } = calculateEMILoanAmounts(principalAmount, interestRate, tenureMonths);
 
-            const endDate: Date = calculateDueDate(startDate, tenureMonths); // Calculate Loan End Date
+            const endDate: Date = calculateDueDate(startDate, tenureMonths); // Calculate Borrowing End Date
 
             updatedBorrowing = await borrowing.update({
                 counterpartyId,
@@ -340,6 +341,10 @@ export const deleteBorrowing = async (req: Request, res: Response): Promise<any>
     try {
         const borrowing: Borrowing | null = await Borrowing.findByPk(borrowingId);
         if (!borrowing) return errorResponse(res, 404, 'Borrowing not found');
+
+        if (NON_DELETABLE_LOAN_STATUSES.has(borrowing.status)) {
+            return errorResponse(res, 400, `Borrowing with status '${borrowing.status}' cannot be deleted.`);
+        }
 
         await Borrowing.destroy({ where: { id: borrowingId } });
         successResponse(res, 200, 'Borrowing deleted successfully', null);

@@ -1,7 +1,9 @@
 import { Request, Response } from "express";
 import { catchResponse, errorResponse, generateUserCode, paginate, successResponse } from "../../utils";
 import { Op } from "sequelize";
-import { Counterparty, User } from "../../models";
+import { Borrowing, Counterparty, User } from "../../models";
+import { sequelize } from "../../config";
+import { NON_DELETABLE_LOAN_STATUSES } from "../../constants";
 
 // Create Counterparty
 export const createCounterparty = async (req: Request, res: Response): Promise<any> => {
@@ -184,13 +186,48 @@ export const updateCounterparty = async (req: Request, res: Response): Promise<a
 // Delete Counterparty by ID
 export const deleteCounterparty = async (req: Request, res: Response): Promise<any> => {
     const counterpartyId = Number(req.params.id);
-    try {
-        const counterparty: Counterparty | null = await Counterparty.findByPk(counterpartyId);
-        if (!counterparty) return errorResponse(res, 404, 'Counterparty not found');
 
+    const t = await sequelize.transaction();
+
+    try {
+        const counterparty: Counterparty | null = await Counterparty.findByPk(counterpartyId, { transaction: t });
+        if (!counterparty) {
+            await t.rollback();
+            return errorResponse(res, 404, 'Counterparty not found');
+        }
+
+        // check whether counterparty has any non-deletable borrowings
+        const nonDeletableBorrowing = await Borrowing.findOne({
+            where: {
+                counterpartyId,
+                status: Array.from(NON_DELETABLE_LOAN_STATUSES)
+            },
+            transaction: t
+        });
+
+        if (nonDeletableBorrowing) {
+            await t.rollback();
+            return errorResponse(res, 400, 'Counterparty cannot be deleted because they have one or more ongoing borrowings.');
+        }
+
+        const borrowingsCount = await Borrowing.count({
+            where: { counterpartyId },
+            transaction: t
+        });
+
+        // delete counterparty's borrowings
+        await Borrowing.destroy({ where: { counterpartyId }, transaction: t });
+
+        // delete counterparty
         await Counterparty.destroy({ where: { id: counterpartyId } });
-        successResponse(res, 200, 'Counterparty deleted successfully', null);
+
+        await t.commit();
+
+        const message = borrowingsCount > 0 ? 'Counterparty and all related borrowings have been deleted successfully.' : 'Counterparty deleted successfully';
+
+        successResponse(res, 200, message, null);
     } catch (error: any) {
+        await t.rollback();
         catchResponse(res, 'Error deleting counterparty', error?.errors?.[0]?.message || error.message || 'Unknown error');
     }
 };
