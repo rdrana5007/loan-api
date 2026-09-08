@@ -1,8 +1,8 @@
 import { Request, Response } from "express";
-import { Role, User } from "../../models";
+import { Loan, Role, User } from "../../models";
 import { catchResponse, errorResponse, generateToken, getRole, hashPassword, paginate, successResponse } from "../../utils";
 import { Op } from "sequelize";
-import { ADMIN, COLLECTOR, MANAGER } from "../../constants";
+import { ADMIN, COLLECTOR, MANAGER, NON_DELETABLE_LOAN_STATUSES } from "../../constants";
 
 // Create User (Manager / Collector)
 export const createUser = async (req: Request, res: Response): Promise<any> => {
@@ -61,8 +61,8 @@ export const getAllUser = async (req: Request, res: Response): Promise<any> => {
             roleId: { [Op.ne]: ADMIN }
         };
 
-        const managerSelected: boolean = isManager === 'true';
-        const collectorSelected: boolean = isCollector === 'true';
+        const managerSelected = isManager === 'true';
+        const collectorSelected = isCollector === 'true';
 
         if (managerSelected && collectorSelected) {
             whereClause.roleId = { [Op.in]: [MANAGER, COLLECTOR] };
@@ -139,7 +139,7 @@ export const getAllCollectorName = async (req: Request, res: Response): Promise<
 
     try {
         let whereClause: any = {
-            roleId: { [Op.eq]: COLLECTOR } 
+            roleId: { [Op.eq]: COLLECTOR }
         };
 
         if (searchTerm) {
@@ -205,8 +205,19 @@ export const deleteUser = async (req: Request, res: Response): Promise<any> => {
         const user: User | null = await User.findByPk(userId);
         if (!user) return errorResponse(res, 404, 'User not found');
 
+        // check whether user has any non-deletable loans
+        const nonDeletableLoan = await Loan.findOne({
+            where: {
+                collectorId: userId,
+                status: Array.from(NON_DELETABLE_LOAN_STATUSES)
+            }
+        });
+        if (nonDeletableLoan) return errorResponse(res, 400, 'User cannot be deleted because they have one or more ongoing loans.');
+
+        const roleName: string = getRole(user?.roleId); // get role name
+
         await User.destroy({ where: { id: userId } });
-        successResponse(res, 200, 'User deleted successfully', null);
+        successResponse(res, 200, `${roleName} deleted successfully`, null);
     } catch (error: any) {
         catchResponse(res, 'Error deleting user', error?.errors?.[0]?.message || error.message || 'Unknown error');
     }

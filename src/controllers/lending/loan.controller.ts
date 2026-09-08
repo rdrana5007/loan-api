@@ -2,7 +2,7 @@ import { Request, Response } from "express";
 import { Customer, CustomerDocuments, EmiFollowup, EmiSchedule, Income, Loan, User } from "../../models";
 import { calculateEMILoanAmounts, calculateLoanEndDate, calculateProcessingFee, catchResponse, errorResponse, generateRandomCode, paginate, successResponse } from "../../utils";
 import { Op } from "sequelize";
-import { COLLECTOR } from "../../constants";
+import { COLLECTOR, NON_DELETABLE_LOAN_STATUSES } from "../../constants";
 import { sequelize } from "../../config";
 
 // Create Loan
@@ -375,8 +375,7 @@ export const deleteLoan = async (req: Request, res: Response): Promise<any> => {
         const loan: Loan | null = await Loan.findByPk(loanId);
         if (!loan) return errorResponse(res, 404, 'Loan not found');
 
-        const NON_DELETABLE_STATUSES = ['approved', 'active', 'defaulted'] as const;
-        if (NON_DELETABLE_STATUSES.includes(loan.status as typeof NON_DELETABLE_STATUSES[number])) {
+        if (NON_DELETABLE_LOAN_STATUSES.has(loan.status)) {
             return errorResponse(res, 400, `Loan with status '${loan.status}' cannot be deleted.`);
         }
 
