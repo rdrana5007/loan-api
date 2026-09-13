@@ -208,7 +208,12 @@ export const deleteUser = async (req: Request, res: Response): Promise<any> => {
         // check whether user has any non-deletable loans
         const nonDeletableLoan = await Loan.findOne({
             where: {
-                collectorId: userId,
+                [Op.or]: [
+                    { collectorId: userId },
+                    { createdBy: userId },
+                    { updatedBy: userId },
+                    { approvedBy: userId }
+                ],
                 status: Array.from(NON_DELETABLE_LOAN_STATUSES)
             }
         });
